@@ -1,6 +1,7 @@
 import React from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { ScrollArea } from "@/modules/utils/scroll-area/scroll-area";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -8,12 +9,11 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen text-white font-inter overflow-hidden">
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-800 p-6">
-          {children}
+      <div className="flex flex-col flex-1 w-full justify-center pr-3">
+        <main className="bg-primary p-6 h-[calc(100vh-20px)] relative rounded-lg flex flex-col w-full overflow-hidden">
+          <ScrollArea.Root>{children}</ScrollArea.Root>
         </main>
       </div>
     </div>
