@@ -1,115 +1,75 @@
-import Image from "next/image";
 import localFont from "next/font/local";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import { ConnectButton, MediaRenderer } from "thirdweb/react";
+import { chainInfo, client } from "@/utils/configs";
+import { createWallet } from "thirdweb/wallets";
+import {
+  useGetUserTokensQuery,
+  useGetUserNFTsQuery,
+  useGetTokenTransfersQuery,
+  useGetNFTsTransfersQuery,
+} from "@/modules/query";
+import { decimalOffChain, stringFormat } from "@/utils";
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const { data: tokenData } = useGetUserTokensQuery();
+  console.log({ tokenData });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const { data: nftData } = useGetUserNFTsQuery();
+  console.log({ nftData });
+
+  const { data: tokenTransfers } = useGetTokenTransfersQuery();
+  console.log({ tokenTransfers });
+
+  const { data: nftTransfers } = useGetNFTsTransfersQuery();
+  console.log({ nftTransfers });
+
+  return (
+    <>
+      <ConnectButton
+        client={client}
+        chain={chainInfo}
+        wallets={[createWallet("io.metamask")]}
+        connectButton={{
+          label: "Connect Wallet",
+          className:
+            "!font-inter !rounded-xl lg:!w-36 !w-[75%] max-sm:!w-full !flex !items-center !justify-center hover:!bg-primary/65 hover:!text-foreground !duration-300 !ease-in-out !transition !bg-primary !text-muted-foreground !h-10",
+        }}
+      />
+
+      <div>
+        <h1>Tokens</h1>
+        {tokenData &&
+          tokenData.map((token, index: number) => (
+            <div key={index}>
+              <p>{token.contractAddress}</p>
+              <p>
+                {stringFormat(decimalOffChain(token.balance, token.decimals))}{" "}
+                {token.tokenSymbol || "Unknown"}
+              </p>
+              <hr />
+            </div>
+          ))}
+      </div>
+
+      <div>
+        <h1>NFTs</h1>
+        {nftData &&
+          nftData.map((nft, index) => (
+            <div key={index}>
+              <MediaRenderer client={client} src={nft.nft.metadata.image} />
+              <h4>Description: {nft.nft.metadata.description}</h4>
+              <h4>
+                Attributes:{" "}
+                {nft.nft.metadata.attributes?.map((attribute: any) => (
+                  <p key={attribute.trait_type}>
+                    {attribute.trait_type}: {attribute.value}
+                  </p>
+                ))}
+              </h4>
+              <hr />
+            </div>
+          ))}
+      </div>
+    </>
   );
 }
