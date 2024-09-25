@@ -1,163 +1,286 @@
-import localFont from "next/font/local";
-import { ConnectButton, MediaRenderer } from "thirdweb/react";
-import { chainInfo, client } from "@/utils/configs";
-import { createWallet } from "thirdweb/wallets";
+import React, { useState } from "react";
+import Layout from "@/components/Layout";
+import { MediaRenderer } from "thirdweb/react";
+import { client } from "@/utils/configs";
 import {
   useGetUserTokensQuery,
   useGetUserNFTsQuery,
   useGetTokenTransfersQuery,
   useGetNFTsTransfersQuery,
+  useUserChainInfo,
 } from "@/modules/query";
-import { decimalOffChain, stringFormat } from "@/utils";
+import { decimalOffChain, getFormatAddress, stringFormat } from "@/utils";
 import {
-  useTransferNFTMutation,
-  useTransferTokenMutation,
-} from "@/modules/mutation";
-import { useState } from "react";
+  DollarSign,
+  ImageIcon,
+  ArrowUpDownIcon,
+  ExternalLinkIcon,
+  CoinsIcon,
+} from "lucide-react";
+import Link from "next/link";
+import NFTModal from "@/components/NFTModal";
+import { NFTActivity, SingleNFTResponse } from "@/utils/types";
+
+const TabButton: React.FC<{
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}> = ({ active, onClick, children }) => (
+  <button
+    className={`px-4 py-2 font-semibold rounded-t-lg ${
+      active
+        ? "bg-gray-700 text-white"
+        : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
+    }`}
+    onClick={onClick}
+  >
+    {children}
+  </button>
+);
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState("tokens");
+  const [selectedNFT, setSelectedNFT] = useState(null);
+  const { activeAccount } = useUserChainInfo();
+  const owner = activeAccount?.address;
+
   const { data: tokenData } = useGetUserTokensQuery();
-  console.log({ tokenData });
-
   const { data: nftData } = useGetUserNFTsQuery();
-  console.log({ nftData });
-
   const { data: tokenTransfers } = useGetTokenTransfersQuery();
-  console.log({ tokenTransfers });
-
   const { data: nftTransfers } = useGetNFTsTransfersQuery();
-  console.log({ nftTransfers });
 
-  const transferTokenMutation = useTransferTokenMutation();
-  const transferNFTMutation = useTransferNFTMutation();
-
-  const [tokenAddress, setTokenAddress] = useState(
-    "0x1a35a38630b6f56637268f437493601dbf72e61a"
-  );
-  const [amount, setAmount] = useState("");
-  const [recipient, setRecipient] = useState(
-    "0xB02CE519342f2b50a8bc49bdD3b85A5312A86463"
-  );
-  const [tokenId, setTokenId] = useState("3");
-
-  const handleTokenTransfer = async () => {
-    if (!tokenAddress || !amount || !recipient) return;
-
-    await transferTokenMutation.mutateAsync({
-      tokenAddress,
-      amount,
-      recipient,
-    });
+  const groupTransfersByDate = (transfers: Partial<NFTActivity>[]) => {
+    return transfers.reduce((acc, transfer) => {
+      if (transfer.timestamp) {
+        const date = new Date(transfer.timestamp).toDateString();
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(transfer);
+        return acc;
+      }
+      return acc;
+    }, {} as Record<string, any>);
   };
 
-  const handleNFTTransfer = async () => {
-    if (!tokenAddress || !tokenId || !recipient) return;
-
-    await transferNFTMutation.mutateAsync({
-      tokenAddress,
-      tokenId,
-      recipient,
-    });
-  };
+  const groupedTokenTransfers = groupTransfersByDate(tokenTransfers || []);
+  const groupedNFTTransfers = groupTransfersByDate(nftTransfers || []);
 
   return (
-    <>
-      <ConnectButton
-        client={client}
-        chain={chainInfo}
-        wallets={[createWallet("io.metamask")]}
-        connectButton={{
-          label: "Connect Wallet",
-          className:
-            "!font-inter !rounded-xl lg:!w-36 !w-[75%] max-sm:!w-full !flex !items-center !justify-center hover:!bg-primary/65 hover:!text-foreground !duration-300 !ease-in-out !transition !bg-primary !text-muted-foreground !h-10",
-        }}
-      />
-      <br />
-      <br />
-
-      <input
-        type="text"
-        value={tokenAddress}
-        onChange={(e) => setTokenAddress(e.target.value)}
-        placeholder="Token Address"
-        className="text-black w-80"
-      />
-      <br />
-      <br />
-
-      <input
-        type="text"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        placeholder="Amount"
-        className="text-black w-80"
-      />
-      <br />
-      <br />
-
-      <input
-        type="text"
-        value={tokenId}
-        onChange={(e) => setTokenId(e.target.value)}
-        placeholder="TokenId"
-        className="text-black w-80"
-      />
-      <br />
-      <br />
-
-      <input
-        type="text"
-        value={recipient}
-        onChange={(e) => setRecipient(e.target.value)}
-        placeholder="Recipient"
-        className="text-black w-80"
-      />
-      <br />
-      <br />
-
-      <button onClick={handleTokenTransfer}>Transfer Token</button>
-      <button onClick={handleNFTTransfer}>Transfer NFT</button>
-
-      <div>
-        <h1>Tokens</h1>
-        {tokenData &&
-          tokenData.map((token, index: number) => (
-            <div key={index}>
-              <p>{token.contractAddress}</p>
-              <p>
-                {stringFormat(decimalOffChain(token.balance, token.decimals))}{" "}
-                {token.tokenSymbol || "Unknown"}
-              </p>
-              <hr />
+    <Layout>
+      <div className="mb-6">
+        <div className="flex space-x-2 mb-4">
+          <TabButton
+            active={activeTab === "tokens"}
+            onClick={() => setActiveTab("tokens")}
+          >
+            <DollarSign className="mr-2" />
+            Tokens
+          </TabButton>
+          <TabButton
+            active={activeTab === "nfts"}
+            onClick={() => setActiveTab("nfts")}
+          >
+            <ImageIcon className="mr-2" />
+            NFTs
+          </TabButton>
+          <TabButton
+            active={activeTab === "tokenTransfers"}
+            onClick={() => setActiveTab("tokenTransfers")}
+          >
+            <ImageIcon className="mr-2" />
+            <ArrowUpDownIcon className="mr-2" />
+            Token Transfers
+          </TabButton>
+          <TabButton
+            active={activeTab === "nftTransfers"}
+            onClick={() => setActiveTab("nftTransfers")}
+          >
+            <ImageIcon className="mr-2" />
+            <ArrowUpDownIcon className="mr-2" />
+            NFT Transfers
+          </TabButton>
+        </div>
+        <div className="bg-gray-700 p-6 rounded-lg">
+          {activeTab === "tokens" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Tokens</h2>
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left">
+                    <th className="pb-2">Token</th>
+                    <th className="pb-2">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tokenData &&
+                    tokenData.map((token, index) => (
+                      <tr key={index} className="border-t border-gray-600">
+                        <td className="py-4 flex items-center">
+                          <CoinsIcon className="w-4 h-4 mr-2" />
+                          <div>
+                            <div className="font-bold">
+                              {token.tokenSymbol || "Unknown"}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              {token.tokenName || "Unknown"}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          {stringFormat(
+                            decimalOffChain(token.balance, token.decimals)
+                          )}{" "}
+                          {token.tokenSymbol}
+                          <div className="text-sm text-gray-400">
+                            No $USD value
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-      </div>
-
-      <div>
-        <h1>NFTs</h1>
-        {nftData &&
-          nftData.map((nft, index) => (
-            <div key={index}>
-              <MediaRenderer client={client} src={nft.nft.metadata.image} />
-              <h4>Description: {nft.nft.metadata.description}</h4>
-              <h4>
-                Attributes:{" "}
-                {nft.nft.metadata.attributes?.map((attribute: any) => (
-                  <p key={attribute.trait_type}>
-                    {attribute.trait_type}: {attribute.value}
-                  </p>
-                ))}
-              </h4>
-              <hr />
+          )}
+          {activeTab === "nfts" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">NFTs</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {nftData &&
+                  nftData.map((nft, index) => (
+                    <div
+                      key={index}
+                      className="cursor-pointer"
+                      // @ts-ignore
+                      onClick={() => setSelectedNFT(nft)}
+                    >
+                      <MediaRenderer
+                        client={client}
+                        src={nft.nft.metadata.image}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                    </div>
+                  ))}
+              </div>
+              {selectedNFT && (
+                <NFTModal
+                  nft={selectedNFT}
+                  onClose={() => setSelectedNFT(null)}
+                />
+              )}
             </div>
-          ))}
+          )}
+          {activeTab === "tokenTransfers" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Token Transfers</h2>
+              {Object.entries(groupedTokenTransfers).map(
+                ([date, transfers]) => (
+                  <div key={date} className="mb-6">
+                    <h3 className="text-xl font-semibold mb-2">{date}</h3>
+                    <div className="space-y-4">
+                      {transfers &&
+                        // @ts-ignore
+                        transfers.map((transfer, index) => (
+                          <div
+                            key={transfer.id || index}
+                            className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
+                          >
+                            <div className="flex items-center space-x-4">
+                              <div
+                                className={`p-2 rounded-full ${
+                                  transfer.type === "send"
+                                    ? "bg-red-500"
+                                    : "bg-green-500"
+                                }`}
+                              >
+                                <ArrowUpDownIcon className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <p className="font-semibold">
+                                  {transfer.type === "send"
+                                    ? "Sent"
+                                    : "Received"}{" "}
+                                  {transfer.amount} {transfer.tokenSymbol}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  {transfer.type === "send" ? "To" : "From"}:{" "}
+                                  {getFormatAddress(
+                                    transfer.type === "send"
+                                      ? transfer.addressTo
+                                      : transfer.addressFrom
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <Link
+                              href={`https://test.xfiscan.com/tx/${transfer.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLinkIcon className="w-5 h-5 text-blue-400 hover:text-blue-300" />
+                            </Link>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+          {activeTab === "nftTransfers" && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">NFT Transfers</h2>
+              {Object.entries(groupedNFTTransfers).map(([date, transfers]) => (
+                <div key={date} className="mb-6">
+                  <h3 className="text-xl font-semibold mb-2">{date}</h3>
+                  <div className="space-y-4">
+                    {transfers &&
+                      // @ts-ignore
+                      transfers.map((transfer, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-4">
+                            <MediaRenderer
+                              client={client}
+                              src={
+                                transfer.nft?.metadata.image ||
+                                transfer.nft?.tokenURI
+                              }
+                              className="w-16 h-16 object-cover rounded-lg"
+                            />
+                            <div>
+                              <p className="font-semibold">
+                                {transfer.type === "send" ? "Sent" : "Received"}{" "}
+                                NFT
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                {transfer.type === "send" ? "To" : "From"}:{" "}
+                                {getFormatAddress(
+                                  transfer.type === "send"
+                                    ? transfer.addressTo
+                                    : transfer.addressFrom
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <Link
+                            href={`https://test.xfiscan.com/tx/${transfer.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLinkIcon className="w-5 h-5 text-blue-400 hover:text-blue-300" />
+                          </Link>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </Layout>
   );
 }
-
-// token address: 0x63019ee1b42737e262145f767946cc2a78462532
-// wallet address: 0xB02CE519342f2b50a8bc49bdD3b85A5312A86463
-
-// nft address: 0x6af8860ba9eed41c3a3c69249da5ef8ac36d20de
-// tokenId 5

@@ -1,20 +1,20 @@
 import { ethers } from "ethers";
+import { formatDistanceToNow } from "date-fns";
 import {
   getContract as getContractThirdweb,
   Hex,
   waitForReceipt,
 } from "thirdweb";
-
 import { chainInfo, client } from "./configs";
 
 export function getFormatAddress(address: string, width?: number): string {
-  const xxl = 1800;
-  if (address && address.length !== 42) {
-    return "Invalid Ethereum Address";
-  }
-  if (width && width >= xxl) {
-    return address;
-  }
+  //   const xxl = 1800;
+  //   if (address && address.length !== 42) {
+  //     return "Invalid Ethereum Address";
+  //   }
+  //   if (width && width >= xxl) {
+  //     return address;
+  //   }
   const start = address?.slice(0, 4);
   const end = address?.slice(-4);
   return `${start}...${end}`;
@@ -85,3 +85,7 @@ export function getContractCustom({
 
   return contract;
 }
+
+export const getActivityAge = (timestamp: string) => {
+  return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+};

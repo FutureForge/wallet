@@ -1,8 +1,15 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserChainInfo } from "../user";
-import { NFTActivity, NFTActivityResponse } from "@/utils/types";
+import {
+  NFTActivity,
+  NFTActivityResponse,
+  SingleNFTResponse,
+} from "@/utils/types";
 import axios from "axios";
 import { CROSSFI_API } from "@/utils/configs";
+import { getContractCustom, tryParseJSON } from "@/utils";
+import { getNFT } from "thirdweb/extensions/erc721";
+import { NFT } from "thirdweb";
 
 export function useGetTokenTransfersQuery() {
   const { activeAccount } = useUserChainInfo();
@@ -35,7 +42,38 @@ export function useGetNFTsTransfersQuery() {
 
       const transfers = response.data.docs as NFTActivity[];
 
-      return transfers;
+      const updatedTransfersWithNFTs = await Promise.all(
+        transfers.map(async (transfer) => {
+          let nft: SingleNFTResponse | NFT | null = null;
+          const contract = getContractCustom({
+            contractAddress: transfer.contractAddress,
+          });
+
+          nft = await getNFT({
+            contract: contract,
+            tokenId: BigInt(transfer.tokenId),
+            includeOwner: true,
+          });
+
+          const uri = nft.tokenURI;
+          const parsedMetadata =
+            typeof uri === "string" ? tryParseJSON(uri) : uri;
+
+          if (parsedMetadata && typeof parsedMetadata === "object") {
+            nft = {
+              ...nft,
+              tokenURI: parsedMetadata.image,
+              metadata: {
+                ...parsedMetadata,
+              },
+            };
+          }
+
+          return { ...transfer, nft };
+        })
+      );
+
+      return updatedTransfersWithNFTs;
     },
     enabled: !!activeAccount,
     refetchInterval: 5000,
