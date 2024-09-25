@@ -16,10 +16,11 @@ import {
   ArrowUpDownIcon,
   ExternalLinkIcon,
   CoinsIcon,
+  ArrowUpDown,
 } from "lucide-react";
 import Link from "next/link";
 import NFTModal from "@/components/NFTModal";
-import { NFTActivity, SingleNFTResponse } from "@/utils/types";
+import { NFTActivity } from "@/utils/types";
 
 const TabButton: React.FC<{
   active: boolean;
@@ -74,31 +75,37 @@ export default function Home() {
             active={activeTab === "tokens"}
             onClick={() => setActiveTab("tokens")}
           >
-            <DollarSign className="mr-2" />
-            Tokens
+            <div className="flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
+              <span>Tokens</span>
+            </div>
           </TabButton>
           <TabButton
             active={activeTab === "nfts"}
             onClick={() => setActiveTab("nfts")}
           >
-            <ImageIcon className="mr-2" />
-            NFTs
+            <div className="flex items-center">
+              <ImageIcon className="w-5 h-5 mr-2" />
+              <span>NFTs</span>
+            </div>
           </TabButton>
           <TabButton
             active={activeTab === "tokenTransfers"}
             onClick={() => setActiveTab("tokenTransfers")}
           >
-            <ImageIcon className="mr-2" />
-            <ArrowUpDownIcon className="mr-2" />
-            Token Transfers
+            <div className="flex items-center">
+              <ArrowUpDown className="w-5 h-5 mr-2" />
+              <span>Token Transfers</span>
+            </div>
           </TabButton>
           <TabButton
             active={activeTab === "nftTransfers"}
             onClick={() => setActiveTab("nftTransfers")}
           >
-            <ImageIcon className="mr-2" />
-            <ArrowUpDownIcon className="mr-2" />
-            NFT Transfers
+            <div className="flex items-center">
+              <ArrowUpDown className="w-5 h-5 mr-2" />
+              <span>NFT Transfers</span>
+            </div>
           </TabButton>
         </div>
         <div className="bg-gray-700 p-6 rounded-lg">
