@@ -5,7 +5,7 @@ import { createWallet } from "thirdweb/wallets";
 
 const Header: React.FC = () => {
   return (
-    <header className="bg-gray-900 text-white p-4 flex justify-between items-center">
+    <header className="text-white flex justify-between items-center">
       <div className="flex items-center">
         {/* <input
           type="text"
@@ -21,15 +21,9 @@ const Header: React.FC = () => {
           connectButton={{
             label: "Connect Wallet",
             className:
-              "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300",
+              "!font-inter !rounded-xl lg:!w-36 !w-[75%] max-sm:!w-full !flex !items-center !justify-center hover:!bg-primary/65 hover:!text-foreground !duration-300 !ease-in-out !transition !bg-sec-bg !text-muted-foreground !h-10",
           }}
         />
-        {/* <button className="bg-gray-800 p-2 rounded-full">
-          <span className="material-icons">notifications</span>
-        </button>
-        <button className="bg-gray-800 p-2 rounded-full">
-          <span className="material-icons">account_circle</span>
-        </button> */}
       </div>
     </header>
   );

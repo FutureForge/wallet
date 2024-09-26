@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
 const config: Config = {
   content: [
@@ -8,9 +9,19 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        inter: ["var(--font-inter)", ...fontFamily.sans],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primary: "#3C3C434A",
+        background: "#000000",
+        "sec-bg": "#252525",
+        "sec-btn": "#5856D6",
+        "muted-foreground": "#999999",
+        foreground: "#F5F5F5",
+        special: "#5856D6",
+        "special-bg": "#1B1F26B8",
+        "dialog-border": "#2C2C2C",
       },
     },
   },
