@@ -48,8 +48,6 @@ const Stake: React.FC = () => {
   const stakeMutation = useStakeMutation();
   const unstakeMutation = useUnstakeMutation();
 
-  console.log({ platformStats });
-
   const [activeTab, setActiveTab] = useState("stake");
   const [amount, setAmount] = useState("");
   const [lockPeriodIndex, setLockPeriodIndex] = useState(0);
