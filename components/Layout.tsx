@@ -12,6 +12,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex h-screen text-white font-inter overflow-hidden">
       <Sidebar />
       <div className="flex flex-col flex-1 w-full justify-center pr-3">
+        <div className="flex justify-end float-right">
+          <Header />
+        </div>
         <main className="bg-primary border border-dialog-border p-6 h-[calc(100vh-20px)] relative rounded-lg flex flex-col w-full overflow-hidden">
           <ScrollArea.Root>{children}</ScrollArea.Root>
         </main>

@@ -22,7 +22,6 @@ import Link from "next/link";
 import NFTModal from "@/components/NFTModal";
 import { NFTActivity } from "@/utils/types";
 import { ScrollArea } from "@/modules/utils/scroll-area/scroll-area";
-import Header from "@/components/Header";
 import { cn } from "@/modules/utils";
 
 const TabButton: React.FC<{
@@ -121,9 +120,6 @@ export default function Home() {
             </TabButton>
           </div>
         )}
-        <div className="flex justify-end float-right">
-          <Header />
-        </div>
       </div>
       <div className="bg-gradient-to-b absolute top-10 from-[#18181A] z-30 via-[#18181A] to-transparent w-full h-8" />
 

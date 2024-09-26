@@ -7,6 +7,46 @@ import {
 } from "thirdweb";
 import { chainInfo, client } from "./configs";
 
+export const STAKING_CONTRACT_ADDRESS =
+  "0x3b7eeb5FA1fCe83cCABcE2bbF921B931274912eb";
+
+const providerUrl =
+  "https://crossfi-testnet.g.alchemy.com/v2/LyMEMlI9ehqzPfajiDhvBXZ4MGjUQ6L-";
+
+export const provider = new ethers.providers.JsonRpcProvider(providerUrl);
+
+export function getContractEthers({
+  contractAddress,
+  abi,
+}: {
+  contractAddress: string;
+  abi: any;
+}) {
+  const contract = new ethers.Contract(contractAddress, abi, provider);
+  return contract;
+}
+
+export function formatBlockchainTimestamp(timestamp: string) {
+  // Convert the timestamp to a Date object
+  const date = new Date(parseInt(timestamp) * 1000);
+
+  // Fix the error by specifying the correct types for the options object
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    // second: 'numeric',
+    // timeZone: 'UTC',
+  };
+
+  // Format the date and time
+  const formattedDate = date?.toLocaleString("en-US", options);
+
+  return formattedDate;
+}
+
 export function getFormatAddress(address: string, width?: number): string {
   //   const xxl = 1800;
   //   if (address && address.length !== 42) {
@@ -18,6 +58,22 @@ export function getFormatAddress(address: string, width?: number): string {
   const start = address?.slice(0, 4);
   const end = address?.slice(-4);
   return `${start}...${end}`;
+}
+
+export function ensureSerializable(data: any): any {
+  if (data === null || data === undefined) return data;
+
+  if (typeof data === "bigint") return data.toString();
+
+  if (Array.isArray(data)) return data.map(ensureSerializable);
+  if (typeof data === "object") {
+    return Object.keys(data).reduce((result, key) => {
+      result[key] = ensureSerializable(data[key]);
+      return result;
+    }, {} as Record<string, any>);
+  }
+
+  return data;
 }
 
 export function to3DP(value: number | string | undefined): string {
