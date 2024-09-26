@@ -35,10 +35,14 @@ const Sidebar: React.FC = () => {
                 <li className="mb-4" key={label}>
                   <Link
                     href={path}
-                    className={cn("flex items-center gap-2 p-2 rounded-lg", {
-                      "bg-sec-btn font-semibold text-foreground": isActive,
-                      'hover:bg-sec-btn/15 text-muted-foreground': !isActive
-                    })}
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-lg text-muted-foreground transition-colors duration-300 ease-in-out",
+                      {
+                        "bg-sec-btn/15 font-semibold text-sec-btn":
+                          isActive,
+                        "hover:bg-sec-btn/15 hover:text-sec-btn": !isActive,
+                      }
+                    )}
                   >
                     {icon}
                     {label}
