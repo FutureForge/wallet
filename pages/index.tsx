@@ -32,11 +32,11 @@ const TabButton: React.FC<{
 }> = ({ active, onClick, children }) => (
   <button
     className={cn(
-      "px-2 py-2 text-sm flex gap-2 text-new-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
+      "px-2 py-2 text-sm flex gap-2 text-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
 
       {
         "text-foreground border-sec-btn": active,
-        "hover:text-muted-foreground hover:border-muted-foreground/50": !active,
+        "hover:border-muted-foreground/50  hover:text-foreground": !active,
       }
     )}
     onClick={onClick}
@@ -127,217 +127,220 @@ export default function Home() {
       </div>
       <div className="bg-gradient-to-b absolute top-10 from-[#18181A] z-30 via-[#18181A] to-transparent w-full h-8" />
 
-      {owner ? 
-      <ScrollArea.Root className="pt-16">
-        {activeTab === "tokens" && (
-          <div className="w-full h-full">
-            {!tokenData || tokenData.length === 0 ? (
-              <Placeholder text="No Tokens Found" />
-            ) : (
-              <>
-                <h2 className="text-2xl font-bold mb-4">Tokens</h2>
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="pb-2">Token</th>
-                      <th className="pb-2">Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tokenData.map((token, index) => (
-                      <tr key={index} className="border-t border-gray-600">
-                        <td className="py-4 flex items-center">
-                          <CoinsIcon className="w-4 h-4 mr-2" />
-                          <div>
-                            <div className="font-bold">
-                              {token.tokenSymbol || "Unknown"}
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              {token.tokenName || "Unknown"}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          {stringFormat(
-                            decimalOffChain(token.balance, token.decimals)
-                          )}{" "}
-                          {token.tokenSymbol}
-                          <div className="text-sm text-gray-400">
-                            No $USD value
-                          </div>
-                        </td>
+      {owner ? (
+        <ScrollArea.Root className="pt-16">
+          {activeTab === "tokens" && (
+            <div className="w-full h-full">
+              {!tokenData || tokenData.length === 0 ? (
+                <Placeholder text="No Tokens Found" />
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold mb-4">Tokens</h2>
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="pb-2">Token</th>
+                        <th className="pb-2">Balance</th>
                       </tr>
+                    </thead>
+                    <tbody>
+                      {tokenData.map((token, index) => (
+                        <tr key={index} className="border-t border-gray-600">
+                          <td className="py-4 flex items-center">
+                            <CoinsIcon className="w-4 h-4 mr-2" />
+                            <div>
+                              <div className="font-bold">
+                                {token.tokenSymbol || "Unknown"}
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                {token.tokenName || "Unknown"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            {stringFormat(
+                              decimalOffChain(token.balance, token.decimals)
+                            )}{" "}
+                            {token.tokenSymbol}
+                            <div className="text-sm text-gray-400">
+                              No $USD value
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </div>
+          )}
+          {activeTab === "nfts" && (
+            <div>
+              {!nftData || nftData.length === 0 ? (
+                <Placeholder text="No NFT Found" />
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold mb-4">NFTs</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {nftData.map((nft, index) => (
+                      <div
+                        key={index}
+                        className="cursor-pointer"
+                        // @ts-ignore
+                        onClick={() => setSelectedNFT(nft)}
+                      >
+                        <MediaRenderer
+                          client={client}
+                          src={nft.nft.metadata.image}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-          </div>
-        )}
-        {activeTab === "nfts" && (
-          <div>
-            {!nftData || nftData.length === 0 ? (
-              <Placeholder text="No NFT Found" />
-            ) : (
-              <>
-                <h2 className="text-2xl font-bold mb-4">NFTs</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {nftData.map((nft, index) => (
-                    <div
-                      key={index}
-                      className="cursor-pointer"
-                      // @ts-ignore
-                      onClick={() => setSelectedNFT(nft)}
-                    >
-                      <MediaRenderer
-                        client={client}
-                        src={nft.nft.metadata.image}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            {selectedNFT && (
-              <NFTModal
-                nft={selectedNFT}
-                onClose={() => setSelectedNFT(null)}
-              />
-            )}
-          </div>
-        )}
+                  </div>
+                </>
+              )}
+              {selectedNFT && (
+                <NFTModal
+                  nft={selectedNFT}
+                  onClose={() => setSelectedNFT(null)}
+                />
+              )}
+            </div>
+          )}
 
-        {activeTab === "tokenTransfers" && (
-          <>
-            {!tokenTransfers || tokenTransfers.length === 0 ? (
-              <Placeholder text="No token transfers found." />
-            ) : (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Token Transfers</h2>
-                {Object.entries(groupedTokenTransfers).map(
-                  ([date, transfers]) => (
-                    <div key={date} className="mb-6">
-                      <h3 className="text-xl font-semibold mb-2">{date}</h3>
-                      <div className="space-y-4">
-                        {transfers &&
-                          // @ts-ignore
-                          transfers.map((transfer, index) => (
-                            <div
-                              key={transfer.id || index}
-                              className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
-                            >
-                              <div className="flex items-center space-x-4">
-                                <div
-                                  className={`p-2 rounded-full ${
-                                    transfer.type === "send"
-                                      ? "bg-red-500"
-                                      : "bg-green-500"
-                                  }`}
+          {activeTab === "tokenTransfers" && (
+            <>
+              {!tokenTransfers || tokenTransfers.length === 0 ? (
+                <Placeholder text="No token transfers found." />
+              ) : (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Token Transfers</h2>
+                  {Object.entries(groupedTokenTransfers).map(
+                    ([date, transfers]) => (
+                      <div key={date} className="mb-6">
+                        <h3 className="text-xl font-semibold mb-2">{date}</h3>
+                        <div className="space-y-4">
+                          {transfers &&
+                            // @ts-ignore
+                            transfers.map((transfer, index) => (
+                              <div
+                                key={transfer.id || index}
+                                className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
+                              >
+                                <div className="flex items-center space-x-4">
+                                  <div
+                                    className={`p-2 rounded-full ${
+                                      transfer.type === "send"
+                                        ? "bg-red-500"
+                                        : "bg-green-500"
+                                    }`}
+                                  >
+                                    <ArrowUpDownIcon className="w-6 h-6" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold">
+                                      {transfer.type === "send"
+                                        ? "Sent"
+                                        : "Received"}{" "}
+                                      {transfer.amount} {transfer.tokenSymbol}
+                                    </p>
+                                    <p className="text-sm text-gray-400">
+                                      {transfer.type === "send" ? "To" : "From"}
+                                      :{" "}
+                                      {getFormatAddress(
+                                        transfer.type === "send"
+                                          ? transfer.addressTo
+                                          : transfer.addressFrom
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Link
+                                  href={`https://test.xfiscan.com/tx/${transfer.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                 >
-                                  <ArrowUpDownIcon className="w-6 h-6" />
-                                </div>
-                                <div>
-                                  <p className="font-semibold">
-                                    {transfer.type === "send"
-                                      ? "Sent"
-                                      : "Received"}{" "}
-                                    {transfer.amount} {transfer.tokenSymbol}
-                                  </p>
-                                  <p className="text-sm text-gray-400">
-                                    {transfer.type === "send" ? "To" : "From"}:{" "}
-                                    {getFormatAddress(
-                                      transfer.type === "send"
-                                        ? transfer.addressTo
-                                        : transfer.addressFrom
-                                    )}
-                                  </p>
-                                </div>
+                                  <ExternalLinkIcon className="w-5 h-5 text-blue-400 hover:text-blue-300" />
+                                </Link>
                               </div>
-                              <Link
-                                href={`https://test.xfiscan.com/tx/${transfer.txHash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLinkIcon className="w-5 h-5 text-blue-400 hover:text-blue-300" />
-                              </Link>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
-          </>
-        )}
-        {activeTab === "nftTransfers" && (
-          <>
-            {!nftTransfers || nftTransfers.length === 0 ? (
-              <Placeholder text="No NFT transfers found." />
-            ) : (
-              <div className="w-full">
-                <h2 className="text-2xl font-semibold mb-4">NFT Transfers</h2>
-                {Object.entries(groupedNFTTransfers).map(
-                  ([date, transfers]) => (
-                    <div key={date} className="mb-6">
-                      <h3 className="text-base font-medium text-muted-foreground mb-2">
-                        {date}
-                      </h3>
-                      <div className="flex flex-wrap flex-shrink items-center gap-6 w-full">
-                        {transfers &&
-                          // @ts-ignore
-                          transfers.map((transfer, index) => (
-                            <div
-                              key={index}
-                              className="bg-background/50 border border-dialog-border p-3 rounded-lg flex w-[300px] items-center justify-between"
-                            >
-                              <div className="flex items-center space-x-4">
-                                <MediaRenderer
-                                  client={client}
-                                  src={
-                                    transfer.nft?.metadata.image ||
-                                    transfer.nft?.tokenURI
-                                  }
-                                  className="w-16 h-16 object-cover rounded-lg"
-                                />
-                                <div>
-                                  <p className="font-semibold">
-                                    {transfer.type === "send"
-                                      ? "Sent"
-                                      : "Received"}{" "}
-                                    NFT
-                                  </p>
-                                  <p className="text-sm text-gray-400">
-                                    {transfer.type === "send" ? "To" : "From"}:{" "}
-                                    {getFormatAddress(
-                                      transfer.type === "send"
-                                        ? transfer.addressTo
-                                        : transfer.addressFrom
-                                    )}
-                                  </p>
+                    )
+                  )}
+                </div>
+              )}
+            </>
+          )}
+          {activeTab === "nftTransfers" && (
+            <>
+              {!nftTransfers || nftTransfers.length === 0 ? (
+                <Placeholder text="No NFT transfers found." />
+              ) : (
+                <div className="w-full">
+                  <h2 className="text-2xl font-semibold mb-4">NFT Transfers</h2>
+                  {Object.entries(groupedNFTTransfers).map(
+                    ([date, transfers]) => (
+                      <div key={date} className="mb-6">
+                        <h3 className="text-base font-medium text-muted-foreground mb-2">
+                          {date}
+                        </h3>
+                        <div className="flex flex-wrap flex-shrink items-center gap-6 w-full">
+                          {transfers &&
+                            // @ts-ignore
+                            transfers.map((transfer, index) => (
+                              <div
+                                key={index}
+                                className="bg-background/50 border border-dialog-border p-3 rounded-lg flex w-[300px] items-center justify-between"
+                              >
+                                <div className="flex items-center space-x-4">
+                                  <MediaRenderer
+                                    client={client}
+                                    src={
+                                      transfer.nft?.metadata.image ||
+                                      transfer.nft?.tokenURI
+                                    }
+                                    className="w-16 h-16 object-cover rounded-lg"
+                                  />
+                                  <div>
+                                    <p className="font-semibold">
+                                      {transfer.type === "send"
+                                        ? "Sent"
+                                        : "Received"}{" "}
+                                      NFT
+                                    </p>
+                                    <p className="text-sm text-gray-400">
+                                      {transfer.type === "send" ? "To" : "From"}
+                                      :{" "}
+                                      {getFormatAddress(
+                                        transfer.type === "send"
+                                          ? transfer.addressTo
+                                          : transfer.addressFrom
+                                      )}
+                                    </p>
+                                  </div>
                                 </div>
+                                <Link
+                                  href={`https://test.xfiscan.com/tx/${transfer.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLinkIcon className="w-5 h-5 text-sec-btn hover:text-sec-btn/85 transition-colors duration-300 ease-in-out" />
+                                </Link>
                               </div>
-                              <Link
-                                href={`https://test.xfiscan.com/tx/${transfer.txHash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLinkIcon className="w-5 h-5 text-sec-btn hover:text-sec-btn/85 transition-colors duration-300 ease-in-out" />
-                              </Link>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </ScrollArea.Root> : 
-      <Placeholder text="Connect Wallet to view your data" />
-      }
+                    )
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </ScrollArea.Root>
+      ) : (
+        <Placeholder text="Connect Wallet to view your data" />
+      )}
     </Layout>
   );
 }
