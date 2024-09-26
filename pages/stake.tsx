@@ -5,9 +5,13 @@ import {
   useGetStakingPosition,
   useUserBalanceQuery,
   useGetPlatformStatsQuery,
+  useUserChainInfo,
 } from "@/modules/query";
 import { to3DP } from "@/utils";
 import { useStakeMutation, useUnstakeMutation } from "@/modules/mutation";
+import { ConnectButton } from "thirdweb/react";
+import { chainInfo, client } from "@/utils/configs";
+import { createWallet } from "thirdweb/wallets";
 
 // const LockPeriod = [
 //   { lockPeriod: 30, rate: 10, index: 0 },
@@ -35,6 +39,7 @@ const TabButton: React.FC<{
 );
 
 const Stake: React.FC = () => {
+  const { activeAccount } = useUserChainInfo();
   const { data: balance } = useUserBalanceQuery();
   const { data: userPosition } = useGetStakingPosition();
   const { data: LockPeriod } = useGetInterestAndLockPeriodsQuery();
@@ -73,6 +78,31 @@ const Stake: React.FC = () => {
     //   handleUnstake(positionId);
     // }
   };
+
+  if (!activeAccount) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Welcome to Mint Mingle XFI Staking
+          </h2>
+          <p className="text-gray-300 mb-6">
+            Connect your wallet to start staking and earning rewards.
+          </p>
+          <ConnectButton
+            client={client}
+            chain={chainInfo}
+            wallets={[createWallet("io.metamask")]}
+            connectButton={{
+              label: "Connect Wallet",
+              className:
+                "!font-inter !rounded-xl lg:!w-36 !border !border-dialog-border !w-[75%] max-sm:!w-full !flex !items-center !justify-center hover:!bg-primary/65 hover:!text-foreground !duration-300 !ease-in-out !transition !bg-sec-bg !text-muted-foreground !h-10",
+            }}
+          />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -124,7 +154,9 @@ const Stake: React.FC = () => {
 
               {/* Lock Period Section */}
               <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-white mb-3">Lock Period</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  Lock Period
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {LockPeriod &&
                     LockPeriod.map((period: any, index: number) => (
@@ -169,7 +201,9 @@ const Stake: React.FC = () => {
                         <td className="p-3">{position.unlockDate}</td>
                         <td className="p-3">{position.createdDate}</td>
                         <td className="p-3">{position.percentInterest}%</td>
-                        <td className="p-3">{position.open ? 'Open' : 'Closed'}</td>
+                        <td className="p-3">
+                          {position.open ? "Open" : "Closed"}
+                        </td>
                         <td className="p-3">
                           <button
                             onClick={() => handleUnstake(position.positionId)}
@@ -200,15 +234,21 @@ const Stake: React.FC = () => {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gray-700 p-4 rounded-lg">
           <p className="text-sm text-gray-400">Total Staked Tokens</p>
-          <p className="text-2xl font-bold text-white">{platformStats?.totalStakedTokens}</p>
+          <p className="text-2xl font-bold text-white">
+            {platformStats?.totalStakedTokens}
+          </p>
         </div>
         <div className="bg-gray-700 p-4 rounded-lg">
           <p className="text-sm text-gray-400">Total Active Stakers</p>
-          <p className="text-2xl font-bold text-white">{platformStats?.totalActiveStakers}</p>
+          <p className="text-2xl font-bold text-white">
+            {platformStats?.totalActiveStakers}
+          </p>
         </div>
         <div className="bg-gray-700 p-4 rounded-lg">
           <p className="text-sm text-gray-400">Total Withdrawal Paid</p>
-          <p className="text-2xl font-bold text-white">{platformStats?.totalRenewalPaid}</p>
+          <p className="text-2xl font-bold text-white">
+            {platformStats?.totalRenewalPaid}
+          </p>
         </div>
       </div>
     </Layout>
