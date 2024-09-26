@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { HomeIcon, FlipHorizontalIcon } from "lucide-react";
+import { HomeIcon, FlipHorizontalIcon, ZapIcon } from "lucide-react";
 import path from "path";
 import { cn } from "@/modules/utils";
 
@@ -15,6 +15,11 @@ const Nav_Links = [
     label: "Transfer",
     icon: <FlipHorizontalIcon />,
     path: "/transfer",
+  },
+  {
+    label: "Stake",
+    icon: <ZapIcon />,
+    path: "/stake",
   },
 ];
 const Sidebar: React.FC = () => {

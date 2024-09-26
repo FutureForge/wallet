@@ -1,9 +1,16 @@
-import { getContractCustom } from "@/utils";
+import {
+  decimalOnChain,
+  getContractCustom,
+  getContractEthers,
+  STAKING_CONTRACT_ADDRESS,
+  waitForTransaction,
+} from "@/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserChainInfo } from "../query";
-import { sendAndConfirmTransaction } from "thirdweb";
+import { sendAndConfirmTransaction, toWei } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
 import { transferFrom } from "thirdweb/extensions/erc721";
+import StakingAbi from "@/utils/abi/staking.json";
 
 export function useTransferTokenMutation() {
   const { activeAccount } = useUserChainInfo();
@@ -103,6 +110,99 @@ export function useTransferNFTMutation() {
       },
       errorMessage: {
         description: "Failed to transfer nft",
+      },
+    },
+  });
+}
+
+export function useStakeMutation() {
+  const { activeAccount } = useUserChainInfo();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      lockPeriodIndex,
+      value,
+    }: {
+      lockPeriodIndex: number;
+      value: string;
+    }) => {
+      const StakingContract = getContractEthers({
+        contractAddress: STAKING_CONTRACT_ADDRESS,
+        abi: StakingAbi,
+      });
+
+      const stakeTxData = await StakingContract.populateTransaction.stakeEther(
+        lockPeriodIndex,
+        {
+          value: decimalOnChain(value),
+        }
+      );
+
+      // @ts-ignore
+      const tx = await activeAccount.sendTransaction(stakeTxData);
+      const receipt = await waitForTransaction(tx.transactionHash);
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction failed");
+      }
+
+      return receipt;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["userTokens", "balance", activeAccount],
+      });
+    },
+    onError: () => {},
+    meta: {
+      successMessage: {
+        description: "Stake successfully",
+      },
+      errorMessage: {
+        description: "Failed to stake",
+      },
+    },
+  });
+}
+
+export function useUnstakeMutation() {
+  const { activeAccount } = useUserChainInfo();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ positionId }: { positionId: string }) => {
+      const StakingContract = getContractEthers({
+        contractAddress: STAKING_CONTRACT_ADDRESS,
+        abi: StakingAbi,
+      });
+
+      const unstakeTxData = await StakingContract.populateTransaction.withdraw(
+        positionId
+      );
+
+      // @ts-ignore
+      const tx = await activeAccount.sendTransaction(unstakeTxData);
+      const receipt = await waitForTransaction(tx.transactionHash);
+
+      if (receipt.status === "reverted") {
+        throw new Error("Transaction failed");
+      }
+
+      return receipt;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["userTokens", "balance", activeAccount],
+      });
+    },
+    onError: () => {},
+    meta: {
+      successMessage: {
+        description: "Unstake successfully",
+      },
+      errorMessage: {
+        description: "Failed to unstake",
       },
     },
   });
