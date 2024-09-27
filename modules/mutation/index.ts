@@ -79,7 +79,7 @@ export function useTransferTokenMutation() {
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["userTokens", activeAccount],
+        queryKey: ["userTokens", "balance", activeAccount],
       });
     },
     onError: (error, variables, context) => {},
@@ -133,7 +133,7 @@ export function useTransferNFTMutation() {
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["userTokens", activeAccount],
+        queryKey: ["userTokens", "balance", "userNFTs",activeAccount],
       });
     },
     onError: (error, variables, context) => {},

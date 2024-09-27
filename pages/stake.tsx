@@ -233,7 +233,7 @@ const Stake: React.FC = () => {
         <div className="bg-gray-700 p-4 rounded-lg">
           <p className="text-sm text-gray-400">Total Staked Tokens</p>
           <p className="text-2xl font-bold text-white">
-            {platformStats?.totalStakedTokens}
+            {platformStats?.totalStakedTokens} XFI
           </p>
         </div>
         <div className="bg-gray-700 p-4 rounded-lg">
