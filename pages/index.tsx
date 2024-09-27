@@ -168,7 +168,7 @@ export default function Home() {
                       </tr>
                     </thead>
                     <tbody>
-                      {tokenData.map((token, index) => (
+                      {tokenData.map((token: any, index: any) => (
                         <tr key={index} className="border-t border-gray-600">
                           <td className="py-4 flex items-center">
                             <CoinsIcon className="w-4 h-4 mr-2" />
@@ -217,7 +217,7 @@ export default function Home() {
                   <Dialog.Root>
                     <Dialog.Trigger>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {nftData.map((nft, index) => {
+                        {nftData.map((nft: any, index: any) => {
                           const imageUrl =
                             nft.nft.metadata.image?.replace(
                               "ipfs://",
