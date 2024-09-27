@@ -28,7 +28,7 @@ export function useGetUserTokensQuery() {
     queryKey: ["userTokens", activeAccount],
     queryFn: async () => {
       const response = await axios.get<TokenDataResponse>(
-        `${CROSSFI_API}/token-holders?address=${activeAccount?.address}&tokenType=CFC-20&page=1&limit=1000&sort=-balance`
+        `${CROSSFI_API}/token-holders?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-20&page=1&limit=1000&sort=-balance`
       );
 
       const tokenList = response.data.docs as TokenData[];
@@ -47,7 +47,7 @@ export function useGetUserNFTsQuery() {
     queryKey: ["userNFTs", activeAccount],
     queryFn: async () => {
       const response = await axios.get<UserNFTResponse>(
-        `${CROSSFI_API}/token-holders?address=${userAddress}&tokenType=CFC-721&page=1&limit=1000&sort=-balance`
+        `${CROSSFI_API}/token-holders?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-721&page=1&limit=1000&sort=-balance`
       );
 
       const userNFTs = response.data.docs;

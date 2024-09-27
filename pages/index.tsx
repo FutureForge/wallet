@@ -19,10 +19,12 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import Link from "next/link";
-import NFTModal from "@/components/NFTModal";
+import { NFTDialog } from "@/components/NFTModal";
 import { NFTActivity } from "@/utils/types";
-import { ScrollArea } from "@/modules/utils/scroll-area/scroll-area";
+import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
 import { cn } from "@/modules/utils";
+import Image from "next/image";
+import { Dialog } from "@/modules/app/dialog";
 
 const TabButton: React.FC<{
   active: boolean;
@@ -31,11 +33,11 @@ const TabButton: React.FC<{
 }> = ({ active, onClick, children }) => (
   <button
     className={cn(
-      "px-2 py-2 text-sm flex gap-2 text-new-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
+      "px-2 py-2 text-sm flex gap-2 text-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
 
       {
         "text-foreground border-sec-btn": active,
-        "hover:text-muted-foreground hover:border-muted-foreground/50": !active,
+        "hover:border-muted-foreground/50  hover:text-foreground": !active,
       }
     )}
     onClick={onClick}
@@ -49,7 +51,7 @@ export default function Home() {
   const [selectedNFT, setSelectedNFT] = useState(null);
   const { activeAccount } = useUserChainInfo();
   const owner = activeAccount?.address;
-
+  // const wallet = "0x1FFE2134c82D07227715af2A12D1406165A305BF";
   const { data: tokenData } = useGetUserTokensQuery();
   const { data: nftData } = useGetUserNFTsQuery();
   const { data: tokenTransfers } = useGetTokenTransfersQuery();
@@ -177,29 +179,46 @@ export default function Home() {
               ) : (
                 <>
                   <h2 className="text-2xl font-bold mb-4">NFTs</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {nftData.map((nft, index) => (
-                      <div
-                        key={index}
-                        className="cursor-pointer"
-                        // @ts-ignore
-                        onClick={() => setSelectedNFT(nft)}
-                      >
-                        <MediaRenderer
-                          client={client}
-                          src={nft.nft.metadata.image}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
+                  <Dialog.Root>
+                    <Dialog.Trigger>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                        {nftData.map((nft, index) => {
+                          const imageUrl =
+                            nft.nft.metadata.image?.replace(
+                              "ipfs://",
+                              "https://ipfs.io/ipfs/"
+                            ) || "/logo.svg";
+                          return (
+                            <>
+                              <div
+                                key={index}
+                                // @ts-ignore
+                                onClick={() => setSelectedNFT(nft)}
+                                className="w-full h-full overflow-hidden group relative rounded-2xl cursor-pointer !max-h-[250px]"
+                              >
+                                {/* <MediaRenderer
+                            client={client}
+                            src={nft.nft.metadata.image}
+                            className="rounded-2xl w-full h-full group-hover:scale-105 transition duration-300 ease-in-out"
+                          /> */}
+                                <Image
+                                  src={imageUrl}
+                                  alt={nft.nft.metadata.name || "NFT"}
+                                  width={1000}
+                                  height={1000}
+                                  className="rounded-2xl group-hover:scale-105 transition-all duration-300 ease-in-out brightness-75"
+                                />
+                              </div>
+                            </>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    </Dialog.Trigger>
+                    <Dialog.Content className="max-w-[690px] w-full p-6">
+                      <NFTDialog nft={selectedNFT} />
+                    </Dialog.Content>
+                  </Dialog.Root>
                 </>
-              )}
-              {selectedNFT && (
-                <NFTModal
-                  nft={selectedNFT}
-                  onClose={() => setSelectedNFT(null)}
-                />
               )}
             </div>
           )}
