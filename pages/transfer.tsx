@@ -64,11 +64,16 @@ const Transfer: React.FC = () => {
   }, [recipient]);
 
   const handleTokenTransfer = async () => {
+    console.log('inside handle token transfer')
     const parsedJson = tryParseJSON(selectedAsset);
 
     const tokenAddress = parsedJson?.contractAddress;
 
+    console.log({ tokenAddress, amount, recipient });
+
     if (!tokenAddress || !amount || !recipient) return;
+
+
     await transferTokenMutation.mutateAsync(
       {
         tokenAddress,
@@ -170,7 +175,7 @@ const Transfer: React.FC = () => {
                       Loading tokens...
                     </option>
                   ) : tokenData && tokenData.length > 0 ? (
-                    tokenData.map((token, index) => (
+                    tokenData.map((token: any, index: any) => (
                       <option
                         key={index}
                         value={JSON.stringify(token)}
@@ -197,7 +202,7 @@ const Transfer: React.FC = () => {
                   className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select NFT</option>
-                  {nftData?.map((nft, index) => (
+                  {nftData?.map((nft: any, index: any) => (
                     <option key={index} value={JSON.stringify(nft)}>
                       <MediaRenderer
                         client={client}
@@ -233,7 +238,7 @@ const Transfer: React.FC = () => {
           )}
 
           <button
-            disabled={isTxPending}
+            // disabled={isTxPending}
             onClick={handleTransfer}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
           >

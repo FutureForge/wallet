@@ -36,6 +36,9 @@ export function useTransferTokenMutation() {
         throw new Error("No active account found");
       }
 
+      console.log({ tokenAddress, amount, recipient });
+      console.log('inside transfer')
+
       if (
         tokenAddress.toLowerCase() ===
         "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE".toLowerCase()

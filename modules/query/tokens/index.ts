@@ -68,7 +68,7 @@ export function useGetUserTokensQuery() {
 
       tokenList.unshift(nativeToken);
 
-      return tokenList;
+      return ensureSerializable(tokenList);
     },
     enabled: !!activeAccount && !!userBalance,
     refetchInterval: 5000,
@@ -145,7 +145,7 @@ export function useGetUserNFTsQuery() {
 
       const flatNFTs = updatedNFTs.flat();
 
-      return flatNFTs;
+      return ensureSerializable(flatNFTs);
     },
     enabled: !!userAddress && !!activeAccount,
     refetchInterval: 5000,
