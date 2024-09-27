@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { HomeIcon, FlipHorizontalIcon } from "lucide-react";
+import { HomeIcon, FlipHorizontalIcon, ZapIcon } from "lucide-react";
 import path from "path";
 import { cn } from "@/modules/utils";
 
@@ -15,6 +15,11 @@ const Nav_Links = [
     label: "Transfer",
     icon: <FlipHorizontalIcon />,
     path: "/transfer",
+  },
+  {
+    label: "Stake",
+    icon: <ZapIcon />,
+    path: "/stake",
   },
 ];
 const Sidebar: React.FC = () => {
@@ -35,10 +40,14 @@ const Sidebar: React.FC = () => {
                 <li className="mb-4" key={label}>
                   <Link
                     href={path}
-                    className={cn("flex items-center gap-2 p-2 rounded-lg", {
-                      "bg-sec-btn font-semibold text-foreground": isActive,
-                      'hover:bg-sec-btn/15 text-muted-foreground': !isActive
-                    })}
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-lg text-muted-foreground transition-colors duration-300 ease-in-out",
+                      {
+                        "bg-sec-btn/15 font-semibold text-sec-btn":
+                          isActive,
+                        "hover:bg-sec-btn/15 hover:text-sec-btn": !isActive,
+                      }
+                    )}
                   >
                     {icon}
                     {label}
