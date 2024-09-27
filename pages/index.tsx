@@ -161,7 +161,16 @@ export default function Home() {
                             )}{" "}
                             {token.tokenSymbol}
                             <div className="text-sm text-gray-400">
-                              No $USD value
+                              {token.usdValue
+                                ? stringFormat(
+                                    Number(
+                                      decimalOffChain(
+                                        token.balance,
+                                        token.decimals
+                                      )
+                                    ) * token.usdValue || 0
+                                  )
+                                : " No $USD value"}
                             </div>
                           </td>
                         </tr>

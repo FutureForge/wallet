@@ -11,6 +11,13 @@ import { sendAndConfirmTransaction, toWei } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
 import { transferFrom } from "thirdweb/extensions/erc721";
 import StakingAbi from "@/utils/abi/staking.json";
+import { ethers } from "ethers";
+
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
 
 export function useTransferTokenMutation() {
   const { activeAccount } = useUserChainInfo();
@@ -29,20 +36,43 @@ export function useTransferTokenMutation() {
         throw new Error("No active account found");
       }
 
-      const contract = getContractCustom({ contractAddress: tokenAddress });
+      if (
+        tokenAddress.toLowerCase() ===
+        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE".toLowerCase()
+      ) {
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
 
-      const transaction = transfer({ contract, amount, to: recipient });
+          const amountInWei = ethers.utils.parseEther(amount);
 
-      const transactionReceipt = await sendAndConfirmTransaction({
-        account: activeAccount,
-        transaction,
-      });
+          const tx = await signer.sendTransaction({
+            to: recipient,
+            value: amountInWei,
+          });
 
-      if (transactionReceipt.status === "reverted") {
-        throw new Error("Transaction failed");
+          const receipt = await tx.wait();
+
+          return receipt;
+        } catch (error) {
+          throw error;
+        }
+      } else {
+        const contract = getContractCustom({ contractAddress: tokenAddress });
+
+        const transaction = transfer({ contract, amount, to: recipient });
+
+        const transactionReceipt = await sendAndConfirmTransaction({
+          account: activeAccount,
+          transaction,
+        });
+
+        if (transactionReceipt.status === "reverted") {
+          throw new Error("Transaction failed");
+        }
+
+        return transactionReceipt;
       }
-
-      return transactionReceipt;
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({

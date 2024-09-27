@@ -24,6 +24,7 @@ export interface TokenData {
   tokenName: string;
   tokenSymbol: string;
   tokenType: string;
+  usdValue?: number;
 }
 
 export interface TokenDataResponse {

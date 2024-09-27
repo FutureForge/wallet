@@ -23,6 +23,7 @@ import StakingAbi from "@/utils/abi/staking.json";
 
 export function useGetUserTokensQuery() {
   const { activeAccount } = useUserChainInfo();
+  const { data: userBalance } = useUserBalanceQuery();
 
   return useQuery({
     queryKey: ["userTokens", activeAccount],
@@ -32,9 +33,28 @@ export function useGetUserTokensQuery() {
       );
 
       const tokenList = response.data.docs as TokenData[];
+
+      const nativeToken = {
+        address: activeAccount?.address!,
+        balance: userBalance?.value!,
+        blockNumber: 0,
+        contractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        decimals: 18,
+        name: "XFI",
+        symbol: "XFI",
+        timestamp: new Date().toISOString(),
+        tokenIds: [],
+        tokenName: "XFI",
+        tokenSymbol: "XFI",
+        tokenType: "CFC-20",
+        usdValue: 0.7,
+      };
+
+      tokenList.unshift(nativeToken);
+
       return tokenList;
     },
-    enabled: !!activeAccount,
+    enabled: !!activeAccount && !!userBalance,
     refetchInterval: 5000,
   });
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import {
   useTransferNFTMutation,
@@ -13,6 +13,7 @@ import { MediaRenderer } from "thirdweb/react";
 import { client } from "@/utils/configs";
 import { ChevronDown, CoinsIcon } from "lucide-react";
 import { decimalOffChain, stringFormat, tryParseJSON } from "@/utils";
+import { isAddress } from "ethers/lib/utils";
 
 const TabButton: React.FC<{
   active: boolean;
@@ -32,23 +33,35 @@ const TabButton: React.FC<{
 );
 
 const Transfer: React.FC = () => {
+  const { activeAccount } = useUserChainInfo();
   const [activeTab, setActiveTab] = useState("token");
   const [selectedAsset, setSelectedAsset] = useState("");
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
+  const [error, setError] = useState("");
 
-  console.log({ selectedAsset });
-
-  const { data: tokenData } = useGetUserTokensQuery();
+  const { data: tokenData, isLoading: isTokenDataLoading } =
+    useGetUserTokensQuery();
   const { data: nftData } = useGetUserNFTsQuery();
-
-  console.log({ tokenData });
-  console.log({ nftData });
 
   const transferTokenMutation = useTransferTokenMutation();
   const transferNFTMutation = useTransferNFTMutation();
 
-  console.log({ parsedJson: tryParseJSON(selectedAsset) });
+  useEffect(() => {
+    if (tokenData && tokenData.length > 0 && !selectedAsset) {
+      setSelectedAsset(JSON.stringify(tokenData[0]));
+    }
+  }, [tokenData, selectedAsset]);
+
+  useEffect(() => {
+    if (recipient && !isAddress(recipient)) {
+      setError("Invalid Ethereum Address");
+    } else if (recipient === activeAccount?.address) {
+      setError("You cannot send to yourself");
+    } else {
+      setError("");
+    }
+  }, [recipient]);
 
   const handleTokenTransfer = async () => {
     const parsedJson = tryParseJSON(selectedAsset);
@@ -56,12 +69,29 @@ const Transfer: React.FC = () => {
     const tokenAddress = parsedJson?.contractAddress;
 
     if (!tokenAddress || !amount || !recipient) return;
-    await transferTokenMutation.mutateAsync({
-      tokenAddress,
-      amount,
-      recipient,
-    });
+    await transferTokenMutation.mutateAsync(
+      {
+        tokenAddress,
+        amount,
+        recipient,
+      },
+      {
+        onSuccess: () => {
+          setSelectedAsset("");
+          setAmount("");
+          setRecipient("");
+        },
+        onError: () => {
+          setSelectedAsset("");
+          setAmount("");
+          setRecipient("");
+        },
+      }
+    );
   };
+
+  const isTxPending =
+    transferTokenMutation.isPending || transferNFTMutation.isPending;
 
   const handleNFTTransfer = async () => {
     const parsedJson = tryParseJSON(selectedAsset);
@@ -115,6 +145,7 @@ const Transfer: React.FC = () => {
               placeholder="Enter public address (0x) or ENS name"
               className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {error && <p className="text-red-500 text-sm">{error}</p>}
           </div>
 
           <div>
@@ -134,18 +165,28 @@ const Transfer: React.FC = () => {
                   className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Token</option>
-                  {tokenData?.map((token, index) => (
-                    <option
-                      key={index}
-                      value={JSON.stringify(token)}
-                      title={token.tokenSymbol || "Unknown"}
-                    >
-                      {token.tokenSymbol || "Unknown"} - Balance:{" "}
-                      {stringFormat(
-                        decimalOffChain(token.balance, token.decimals)
-                      )}
+                  {isTokenDataLoading ? (
+                    <option value="" disabled>
+                      Loading tokens...
                     </option>
-                  ))}
+                  ) : tokenData && tokenData.length > 0 ? (
+                    tokenData.map((token, index) => (
+                      <option
+                        key={index}
+                        value={JSON.stringify(token)}
+                        title={token.tokenSymbol || "Unknown"}
+                      >
+                        {token.tokenSymbol || "Unknown"} - Balance:{" "}
+                        {stringFormat(
+                          decimalOffChain(token.balance, token.decimals)
+                        )}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      No tokens available
+                    </option>
+                  )}
                 </select>
               ) : (
                 <select
@@ -183,9 +224,7 @@ const Transfer: React.FC = () => {
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={`0.00 ${
                   selectedAsset
-                    ? tokenData?.find(
-                        (t) => t.contractAddress === selectedAsset
-                      )?.tokenSymbol || "Unknown"
+                    ? tryParseJSON(selectedAsset)?.tokenSymbol || "Unknown"
                     : ""
                 }`}
                 className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -194,6 +233,7 @@ const Transfer: React.FC = () => {
           )}
 
           <button
+            disabled={isTxPending}
             onClick={handleTransfer}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
           >
