@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUserChainInfo } from "../user";
 import axios from "axios";
@@ -21,15 +22,30 @@ import { getNFT } from "thirdweb/extensions/erc721";
 import { useWalletBalance } from "thirdweb/react";
 import StakingAbi from "@/utils/abi/staking.json";
 
+export function useAbortController() {
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    abortControllerRef.current = new AbortController();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  return abortControllerRef.current;
+}
+
 export function useGetUserTokensQuery() {
   const { activeAccount } = useUserChainInfo();
   const { data: userBalance } = useUserBalanceQuery();
+  const abortController = useAbortController();
 
   return useQuery({
     queryKey: ["userTokens", activeAccount],
     queryFn: async () => {
       const response = await axios.get<TokenDataResponse>(
-        `${CROSSFI_API}/token-holders?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-20&page=1&limit=1000&sort=-balance`
+        `${CROSSFI_API}/token-holders?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-20&page=1&limit=1000&sort=-balance`,
+        { signal: abortController!.signal }
       );
 
       const tokenList = response.data.docs as TokenData[];
@@ -62,12 +78,14 @@ export function useGetUserTokensQuery() {
 export function useGetUserNFTsQuery() {
   const { activeAccount } = useUserChainInfo();
   const userAddress = activeAccount?.address;
+  const abortController = useAbortController();
 
   return useQuery({
     queryKey: ["userNFTs", activeAccount],
     queryFn: async () => {
       const response = await axios.get<UserNFTResponse>(
-        `${CROSSFI_API}/token-holders?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-721&page=1&limit=1000&sort=-balance`
+        `${CROSSFI_API}/token-holders?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-721&page=1&limit=1000&sort=-balance`,
+        { signal: abortController!.signal }
       );
 
       const userNFTs = response.data.docs;
@@ -137,7 +155,7 @@ export function useGetUserNFTsQuery() {
 export function useUserBalanceQuery() {
   const { activeAccount } = useUserChainInfo();
 
-  const { data: xfiBalance, isLoading: xfiBalanceLoading } = useWalletBalance({
+  const { data: xfiBalance } = useWalletBalance({
     chain: chainInfo,
     address: activeAccount?.address,
     client,

@@ -52,10 +52,34 @@ export default function Home() {
   const { activeAccount } = useUserChainInfo();
   const owner = activeAccount?.address;
   // const wallet = "0x1FFE2134c82D07227715af2A12D1406165A305BF";
-  const { data: tokenData } = useGetUserTokensQuery();
-  const { data: nftData } = useGetUserNFTsQuery();
-  const { data: tokenTransfers } = useGetTokenTransfersQuery();
-  const { data: nftTransfers } = useGetNFTsTransfersQuery();
+  const {
+    data: tokenData,
+    isLoading: tokenLoading,
+    isError: tokenError,
+  } = useGetUserTokensQuery();
+  const {
+    data: nftData,
+    isLoading: nftLoading,
+    isError: nftError,
+  } = useGetUserNFTsQuery();
+  const {
+    data: tokenTransfers,
+    isLoading: tokenTransfersLoading,
+    isError: tokenTransfersError,
+  } = useGetTokenTransfersQuery();
+  const {
+    data: nftTransfers,
+    isLoading: nftTransfersLoading,
+    isError: nftTransfersError,
+  } = useGetNFTsTransfersQuery();
+
+  const isLoading =
+    tokenLoading || nftLoading || tokenTransfersLoading || nftTransfersLoading;
+  const isError =
+    tokenError || nftError || tokenTransfersError || nftTransfersError;
+
+  const data = useGetUserTokensQuery();
+  console.log({ data });
 
   const groupTransfersByDate = (transfers: Partial<NFTActivity>[]) => {
     return transfers.reduce((acc, transfer) => {
@@ -73,6 +97,8 @@ export default function Home() {
 
   const groupedTokenTransfers = groupTransfersByDate(tokenTransfers || []);
   const groupedNFTTransfers = groupTransfersByDate(nftTransfers || []);
+
+  if (isError && isLoading) return <Placeholder text="Loading..." />;
 
   return (
     <Layout>
