@@ -18,7 +18,7 @@ export function useGetTokenTransfersQuery() {
     queryKey: ["userTransfers-tokens", activeAccount],
     queryFn: async () => {
       const response = await axios.get<Partial<NFTActivityResponse>>(
-        `${CROSSFI_API}/token-transfers?address=${activeAccount?.address}&tokenType=CFC-20&page=1&limit=100&sort=-blockNumber`
+        `${CROSSFI_API}/token-transfers?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-20&page=1&limit=100&sort=-blockNumber`
       );
 
       const transfers = response.data.docs as Partial<NFTActivity>[];
@@ -37,7 +37,7 @@ export function useGetNFTsTransfersQuery() {
     queryKey: ["userTransfers-nfts", activeAccount],
     queryFn: async () => {
       const response = await axios.get<NFTActivityResponse>(
-        `${CROSSFI_API}/token-transfers?address=${activeAccount?.address}&tokenType=CFC-721&page=1&limit=100&sort=-blockNumber`
+        `${CROSSFI_API}/token-transfers?address=0x1FFE2134c82D07227715af2A12D1406165A305BF&tokenType=CFC-721&page=1&limit=100&sort=-blockNumber`
       );
 
       const transfers = response.data.docs as NFTActivity[];
