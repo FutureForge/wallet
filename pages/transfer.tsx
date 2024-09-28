@@ -16,6 +16,7 @@ import { decimalOffChain, stringFormat, tryParseJSON } from "@/utils";
 import { cn } from "@/modules/utils";
 import { Select } from "@/modules/app/select";
 import { isAddress } from "ethers/lib/utils";
+import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
 
 const TabButton: React.FC<{
   active: boolean;
@@ -182,29 +183,34 @@ const Transfer: React.FC = () => {
                 >
                   <Select.Trigger placeholder="Select Asset" />
 
-                  <Select.Content>
-                    {activeTab === "token"
-                      ? tokenData?.map((token:any, index:number) => (
-                          <Select.Item
-                            key={index}
-                            value={JSON.stringify(token)}
-                          >
-                            {token.tokenSymbol || "Unknown"} - Balance:{" "}
-                            {stringFormat(
-                              decimalOffChain(token.balance, token.decimals)
-                            )}
-                          </Select.Item>
-                        ))
-                      : nftData?.map((nft:any, index:number) => (
-                          <Select.Item key={index} value={JSON.stringify(nft)}>
-                            <MediaRenderer
-                              client={client}
-                              src={nft.nft.metadata.image || nft.nft.tokenURI}
-                              className="w-12 h-12 object-cover rounded-lg"
-                            />
-                            {nft.nft.metadata.name}
-                          </Select.Item>
-                        ))}
+                  <Select.Content className="max-h-[250px]">
+                    <ScrollArea.Root>
+                      {activeTab === "token"
+                        ? tokenData?.map((token: any, index: number) => (
+                            <Select.Item
+                              key={index}
+                              value={JSON.stringify(token)}
+                            >
+                              {token.tokenSymbol || "Unknown"} - Balance:{" "}
+                              {stringFormat(
+                                decimalOffChain(token.balance, token.decimals)
+                              )}
+                            </Select.Item>
+                          ))
+                        : nftData?.map((nft: any, index: number) => (
+                            <Select.Item
+                              key={index}
+                              value={JSON.stringify(nft)}
+                            >
+                              <MediaRenderer
+                                client={client}
+                                src={nft.nft.metadata.image || nft.nft.tokenURI}
+                                className="w-12 h-12 object-cover rounded-lg"
+                              />
+                              {nft.nft.metadata.name}
+                            </Select.Item>
+                          ))}
+                    </ScrollArea.Root>
                   </Select.Content>
                 </Select.Root>
               </div>
@@ -222,7 +228,7 @@ const Transfer: React.FC = () => {
                   placeholder={`0.00 ${
                     selectedAsset
                       ? tokenData?.find(
-                          (t:any) => t.contractAddress === selectedAsset
+                          (t: any) => t.contractAddress === selectedAsset
                         )?.tokenSymbol || "Unknown"
                       : ""
                   }`}
