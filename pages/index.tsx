@@ -25,6 +25,7 @@ import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
 import { cn } from "@/modules/utils";
 import Image from "next/image";
 import { Dialog } from "@/modules/app/dialog";
+import { Title } from "@/modules/app/title/title";
 
 const TabButton: React.FC<{
   active: boolean;
@@ -33,7 +34,7 @@ const TabButton: React.FC<{
 }> = ({ active, onClick, children }) => (
   <button
     className={cn(
-      "px-2 py-2 text-sm flex gap-2 text-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
+      "px-2 py-2 text-sm flex gap-1.5 text-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
 
       {
         "text-foreground border-sec-btn": active,
@@ -46,13 +47,35 @@ const TabButton: React.FC<{
   </button>
 );
 
+const tabs = [
+  {
+    key: "tokens",
+    label: "Tokens",
+    icon: <DollarSign className="w-5 h-5" />,
+  },
+  {
+    key: "nfts",
+    label: "NFTs",
+    icon: <ImageIcon className="w-5 h-5" />,
+  },
+  {
+    key: "tokenTransfers",
+    label: "Token Transfers",
+    icon: <ArrowUpDown className="w-5 h-5" />,
+  },
+  {
+    key: "nftTransfers",
+    label: "NFT Transfers",
+    icon: <ArrowUpDown className="w-5 h-5" />,
+  },
+];
 export default function Home() {
   const [activeTab, setActiveTab] = useState("tokens");
   const [selectedNFT, setSelectedNFT] = useState(null);
   const { activeAccount } = useUserChainInfo();
   const owner = activeAccount?.address;
   // const wallet = "0x1FFE2134c82D07227715af2A12D1406165A305BF";
-  const { data: tokenData } = useGetUserTokensQuery();
+  const { data: tokenData, isLoading:tableLoading } = useGetUserTokensQuery();
   const { data: nftData } = useGetUserNFTsQuery();
   const { data: tokenTransfers } = useGetTokenTransfersQuery();
   const { data: nftTransfers } = useGetNFTsTransfersQuery();
@@ -84,42 +107,16 @@ export default function Home() {
       >
         {owner && (
           <div className="flex items-center justify-between  space-x-2 mb-4">
-            <TabButton
-              active={activeTab === "tokens"}
-              onClick={() => setActiveTab("tokens")}
-            >
-              <div className="flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                <span>Tokens</span>
-              </div>
-            </TabButton>
-            <TabButton
-              active={activeTab === "nfts"}
-              onClick={() => setActiveTab("nfts")}
-            >
-              <div className="flex items-center">
-                <ImageIcon className="w-5 h-5 mr-2" />
-                <span>NFTs</span>
-              </div>
-            </TabButton>
-            <TabButton
-              active={activeTab === "tokenTransfers"}
-              onClick={() => setActiveTab("tokenTransfers")}
-            >
-              <div className="flex items-center">
-                <ArrowUpDown className="w-5 h-5 mr-2" />
-                <span>Token Transfers</span>
-              </div>
-            </TabButton>
-            <TabButton
-              active={activeTab === "nftTransfers"}
-              onClick={() => setActiveTab("nftTransfers")}
-            >
-              <div className="flex items-center">
-                <ArrowUpDown className="w-5 h-5 mr-2" />
-                <span>NFT Transfers</span>
-              </div>
-            </TabButton>
+            {tabs.map((tab) => (
+              <TabButton
+                key={tab.key}
+                active={activeTab === tab.key}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                {tab.icon}
+                {tab.label}
+              </TabButton>
+            ))}
           </div>
         )}
       </div>
@@ -130,21 +127,32 @@ export default function Home() {
           {activeTab === "tokens" && (
             <div className="w-full h-full">
               {!tokenData || tokenData.length === 0 ? (
-                <Placeholder text="No Tokens Found" />
+                <Placeholder text="You do not own any tokens yet." />
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold mb-4">Tokens</h2>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-left">
-                        <th className="pb-2">Token</th>
-                        <th className="pb-2">Balance</th>
+                  <Title title="Your Tokens" />
+                  <table className="w-full !font-inter bg-new-secondary p-4 rounded-lg">
+                    <thead className="border-b border-b-new-elements-border pb-4">
+                      <tr className="text-left rounded-tl-md rounded-tr-md">
+                        <th className="p-2 rounded-tl-lg text-muted-foreground text-sm !font-inter">
+                          Token
+                        </th>
+                        <th className="p-2 text-muted-foreground text-sm !font-inter">
+                          Balance
+                        </th>
+                        <th className="p-2 rounded-tr-lg text-muted-foreground text-sm !font-inter">
+                          Token Type
+                        </th>
                       </tr>
                     </thead>
-                    <tbody>
+                    
+                    <tbody className="px-6">
                       {tokenData.map((token, index) => (
-                        <tr key={index} className="border-t border-gray-600">
-                          <td className="py-4 flex items-center">
+                        <tr
+                          key={index}
+                          className="bg-transparent px-4 hover:bg-new-terciary cursor-pointer rounded-lg transition-colors duration-300 ease-in-out"
+                        >
+                          <td className="p-4 flex items-center">
                             <CoinsIcon className="w-4 h-4 mr-2" />
                             <div>
                               <div className="font-bold">
@@ -164,6 +172,9 @@ export default function Home() {
                               No $USD value
                             </div>
                           </td>
+                          <td className="py-4">
+                            {token.tokenType || "Unknown"}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -178,7 +189,7 @@ export default function Home() {
                 <Placeholder text="No NFT Found" />
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold mb-4">NFTs</h2>
+                  <Title title="Your NFTs" />
                   <Dialog.Root>
                     <Dialog.Trigger>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -196,11 +207,6 @@ export default function Home() {
                                 onClick={() => setSelectedNFT(nft)}
                                 className="w-full h-full overflow-hidden group relative rounded-2xl cursor-pointer !max-h-[250px]"
                               >
-                                {/* <MediaRenderer
-                            client={client}
-                            src={nft.nft.metadata.image}
-                            className="rounded-2xl w-full h-full group-hover:scale-105 transition duration-300 ease-in-out"
-                          /> */}
                                 <Image
                                   src={imageUrl}
                                   alt={nft.nft.metadata.name || "NFT"}
@@ -226,21 +232,23 @@ export default function Home() {
           {activeTab === "tokenTransfers" && (
             <>
               {!tokenTransfers || tokenTransfers.length === 0 ? (
-                <Placeholder text="No token transfers found." />
+                <Placeholder text="You haven't made any token transfers yet." />
               ) : (
                 <div>
-                  <h2 className="text-2xl font-bold mb-4">Token Transfers</h2>
+                  <Title title="Your Token Transfers" />
                   {Object.entries(groupedTokenTransfers).map(
                     ([date, transfers]) => (
                       <div key={date} className="mb-6">
-                        <h3 className="text-xl font-semibold mb-2">{date}</h3>
-                        <div className="space-y-4">
+                        <h3 className="text-base font-medium text-muted-foreground mb-2">
+                          {date}
+                        </h3>
+                        <div className="flex flex-wrap flex-shrink items-center gap-6 w-full">
                           {transfers &&
                             // @ts-ignore
                             transfers.map((transfer, index) => (
                               <div
                                 key={transfer.id || index}
-                                className="bg-gray-800 p-4 rounded-lg flex items-center justify-between"
+                                className="bg-background/50 border border-dialog-border p-3 rounded-lg flex w-[300px] items-center justify-between"
                               >
                                 <div className="flex items-center space-x-4">
                                   <div
@@ -275,7 +283,7 @@ export default function Home() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >
-                                  <ExternalLinkIcon className="w-5 h-5 text-blue-400 hover:text-blue-300" />
+                                  <ExternalLinkIcon className="w-5 h-5 text-sec-btn hover:text-sec-btn/85 transition-colors duration-300 ease-in-out" />
                                 </Link>
                               </div>
                             ))}
@@ -290,10 +298,10 @@ export default function Home() {
           {activeTab === "nftTransfers" && (
             <>
               {!nftTransfers || nftTransfers.length === 0 ? (
-                <Placeholder text="No NFT transfers found." />
+                <Placeholder text="You haven't made any NFT transfer yet." />
               ) : (
                 <div className="w-full">
-                  <h2 className="text-2xl font-semibold mb-4">NFT Transfers</h2>
+                  <Title title="Your NFT Transfers" />
                   {Object.entries(groupedNFTTransfers).map(
                     ([date, transfers]) => (
                       <div key={date} className="mb-6">
