@@ -75,10 +75,34 @@ export default function Home() {
   const { activeAccount } = useUserChainInfo();
   const owner = activeAccount?.address;
   // const wallet = "0x1FFE2134c82D07227715af2A12D1406165A305BF";
-  const { data: tokenData, isLoading:tableLoading } = useGetUserTokensQuery();
-  const { data: nftData } = useGetUserNFTsQuery();
-  const { data: tokenTransfers } = useGetTokenTransfersQuery();
-  const { data: nftTransfers } = useGetNFTsTransfersQuery();
+  const {
+    data: tokenData,
+    isLoading: tokenLoading,
+    isError: tokenError,
+  } = useGetUserTokensQuery();
+  const {
+    data: nftData,
+    isLoading: nftLoading,
+    isError: nftError,
+  } = useGetUserNFTsQuery();
+  const {
+    data: tokenTransfers,
+    isLoading: tokenTransfersLoading,
+    isError: tokenTransfersError,
+  } = useGetTokenTransfersQuery();
+  const {
+    data: nftTransfers,
+    isLoading: nftTransfersLoading,
+    isError: nftTransfersError,
+  } = useGetNFTsTransfersQuery();
+
+  const isLoading =
+    tokenLoading || nftLoading || tokenTransfersLoading || nftTransfersLoading;
+  const isError =
+    tokenError || nftError || tokenTransfersError || nftTransfersError;
+
+  const data = useGetUserTokensQuery();
+  console.log({ data });
 
   const groupTransfersByDate = (transfers: Partial<NFTActivity>[]) => {
     return transfers.reduce((acc, transfer) => {
@@ -96,6 +120,8 @@ export default function Home() {
 
   const groupedTokenTransfers = groupTransfersByDate(tokenTransfers || []);
   const groupedNFTTransfers = groupTransfersByDate(nftTransfers || []);
+
+  if (isError && isLoading) return <Placeholder text="Loading..." />;
 
   return (
     <Layout>
@@ -131,7 +157,7 @@ export default function Home() {
               ) : (
                 <>
                   <Title title="Your Tokens" />
-                  <table className="w-full !font-inter bg-new-secondary p-4 rounded-lg">
+                  <table className="w-full !font-inter bg-new-secondary p-4 rounded-lg px-4">
                     <thead className="border-b border-b-new-elements-border pb-4">
                       <tr className="text-left rounded-tl-md rounded-tr-md">
                         <th className="p-2 rounded-tl-lg text-muted-foreground text-sm !font-inter">
@@ -145,14 +171,10 @@ export default function Home() {
                         </th>
                       </tr>
                     </thead>
-                    
-                    <tbody className="px-6">
-                      {tokenData.map((token, index) => (
-                        <tr
-                          key={index}
-                          className="bg-transparent px-4 hover:bg-new-terciary cursor-pointer rounded-lg transition-colors duration-300 ease-in-out"
-                        >
-                          <td className="p-4 flex items-center">
+                    <tbody>
+                      {tokenData.map((token: any, index: any) => (
+                        <tr key={index} className="px-4">
+                          <td className="py-4 flex items-center px-4">
                             <CoinsIcon className="w-4 h-4 mr-2" />
                             <div>
                               <div className="font-bold">
@@ -169,7 +191,16 @@ export default function Home() {
                             )}{" "}
                             {token.tokenSymbol}
                             <div className="text-sm text-gray-400">
-                              No $USD value
+                              {token.usdValue
+                                ? stringFormat(
+                                    Number(
+                                      decimalOffChain(
+                                        token.balance,
+                                        token.decimals
+                                      )
+                                    ) * token.usdValue || 0
+                                  )
+                                : " No $USD value"}
                             </div>
                           </td>
                           <td className="py-4">
@@ -193,7 +224,7 @@ export default function Home() {
                   <Dialog.Root>
                     <Dialog.Trigger>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {nftData.map((nft, index) => {
+                        {nftData.map((nft: any, index: any) => {
                           const imageUrl =
                             nft.nft.metadata.image?.replace(
                               "ipfs://",

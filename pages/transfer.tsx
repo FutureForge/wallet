@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import {
   useTransferNFTMutation,
@@ -15,6 +15,7 @@ import { ChevronDown, CoinsIcon } from "lucide-react";
 import { decimalOffChain, stringFormat, tryParseJSON } from "@/utils";
 import { cn } from "@/modules/utils";
 import { Select } from "@/modules/app/select";
+import { isAddress } from "ethers/lib/utils";
 
 const TabButton: React.FC<{
   active: boolean;
@@ -37,36 +38,70 @@ const TabButton: React.FC<{
 );
 
 const Transfer: React.FC = () => {
+  const { activeAccount } = useUserChainInfo();
   const [activeTab, setActiveTab] = useState("token");
   const [selectedAsset, setSelectedAsset] = useState("");
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
+  const [error, setError] = useState("");
 
-  console.log({ selectedAsset });
-
-  const { data: tokenData } = useGetUserTokensQuery();
+  const { data: tokenData, isLoading: isTokenDataLoading } =
+    useGetUserTokensQuery();
   const { data: nftData } = useGetUserNFTsQuery();
-
-  console.log({ tokenData });
-  console.log({ nftData });
 
   const transferTokenMutation = useTransferTokenMutation();
   const transferNFTMutation = useTransferNFTMutation();
 
-  console.log({ parsedJson: tryParseJSON(selectedAsset) });
+  useEffect(() => {
+    if (tokenData && tokenData.length > 0 && !selectedAsset) {
+      setSelectedAsset(JSON.stringify(tokenData[0]));
+    }
+  }, [tokenData, selectedAsset]);
+
+  useEffect(() => {
+    if (recipient && !isAddress(recipient)) {
+      setError("Invalid Ethereum Address");
+    } else if (recipient === activeAccount?.address) {
+      setError("You cannot send to yourself");
+    } else {
+      setError("");
+    }
+  }, [recipient]);
 
   const handleTokenTransfer = async () => {
+    console.log('inside handle token transfer')
     const parsedJson = tryParseJSON(selectedAsset);
 
     const tokenAddress = parsedJson?.contractAddress;
 
+    console.log({ tokenAddress, amount, recipient });
+
     if (!tokenAddress || !amount || !recipient) return;
-    await transferTokenMutation.mutateAsync({
-      tokenAddress,
-      amount,
-      recipient,
-    });
+
+
+    await transferTokenMutation.mutateAsync(
+      {
+        tokenAddress,
+        amount,
+        recipient,
+      },
+      {
+        onSuccess: () => {
+          setSelectedAsset("");
+          setAmount("");
+          setRecipient("");
+        },
+        onError: () => {
+          setSelectedAsset("");
+          setAmount("");
+          setRecipient("");
+        },
+      }
+    );
   };
+
+  const isTxPending =
+    transferTokenMutation.isPending || transferNFTMutation.isPending;
 
   const handleNFTTransfer = async () => {
     const parsedJson = tryParseJSON(selectedAsset);
@@ -149,7 +184,7 @@ const Transfer: React.FC = () => {
 
                   <Select.Content>
                     {activeTab === "token"
-                      ? tokenData?.map((token, index) => (
+                      ? tokenData?.map((token:any, index:number) => (
                           <Select.Item
                             key={index}
                             value={JSON.stringify(token)}
@@ -160,7 +195,7 @@ const Transfer: React.FC = () => {
                             )}
                           </Select.Item>
                         ))
-                      : nftData?.map((nft, index) => (
+                      : nftData?.map((nft:any, index:number) => (
                           <Select.Item key={index} value={JSON.stringify(nft)}>
                             <MediaRenderer
                               client={client}
@@ -187,7 +222,7 @@ const Transfer: React.FC = () => {
                   placeholder={`0.00 ${
                     selectedAsset
                       ? tokenData?.find(
-                          (t) => t.contractAddress === selectedAsset
+                          (t:any) => t.contractAddress === selectedAsset
                         )?.tokenSymbol || "Unknown"
                       : ""
                   }`}
