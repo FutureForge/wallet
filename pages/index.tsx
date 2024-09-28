@@ -132,7 +132,7 @@ export default function Home() {
         <div className="mt-8 md:mt-0">
           <div
             className={cn(
-              "mb-6 flex items-center justify-between lg:bg-[#18181A] bg-new-secondary w-full z-30 absolute lg:top-0 top-[38px]",
+              "mb-6 flex items-center justify-between lg:bg-[#18181A] bg-new-secondary w-full z-30 lg:z-40 absolute lg:top-0 top-[38px]",
               { "justify-end": !owner }
             )}
           >
