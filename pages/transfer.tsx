@@ -17,26 +17,8 @@ import { cn } from "@/modules/utils";
 import { Select } from "@/modules/app/select";
 import { isAddress } from "ethers/lib/utils";
 import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
+import { TabButton } from ".";
 
-const TabButton: React.FC<{
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}> = ({ active, onClick, children }) => (
-  <button
-    className={cn(
-      "px-2 py-2 text-sm flex gap-1.5 text-muted-foreground font-medium duration-500 ease-in-out transition-colors border-b-2 border-transparent !rounded-none",
-
-      {
-        "text-foreground border-sec-btn": active,
-        "hover:border-muted-foreground/50  hover:text-foreground": !active,
-      }
-    )}
-    onClick={onClick}
-  >
-    {children}
-  </button>
-);
 
 const Transfer: React.FC = () => {
   const { activeAccount } = useUserChainInfo();
@@ -202,12 +184,16 @@ const Transfer: React.FC = () => {
                               key={index}
                               value={JSON.stringify(nft)}
                             >
-                              <MediaRenderer
-                                client={client}
-                                src={nft.nft.metadata.image || nft.nft.tokenURI}
-                                className="w-12 h-12 object-cover rounded-lg"
-                              />
-                              {nft.nft.metadata.name}
+                              <div className="flex items-center gap-3">
+                                <MediaRenderer
+                                  client={client}
+                                  src={
+                                    nft.nft.metadata.image || nft.nft.tokenURI
+                                  }
+                                  className="w-8 h-8 object-cover rounded-lg"
+                                />
+                                <span>{nft.nft.metadata.name}</span>
+                              </div>
                             </Select.Item>
                           ))}
                     </ScrollArea.Root>

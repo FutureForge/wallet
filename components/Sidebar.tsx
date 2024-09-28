@@ -5,7 +5,7 @@ import { HomeIcon, FlipHorizontalIcon, ZapIcon } from "lucide-react";
 import path from "path";
 import { cn } from "@/modules/utils";
 
-const Nav_Links = [
+export const Nav_Links = [
   {
     label: "Home",
     icon: <HomeIcon />,
@@ -26,7 +26,7 @@ const Sidebar: React.FC = () => {
   const router = useRouter();
 
   return (
-    <aside className="w-64">
+    <aside className="w-64 max-lg:hidden">
       <div className="divide-y divide-dialog-border">
         <div className="p-4">
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
