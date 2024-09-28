@@ -12,6 +12,9 @@ import { useStakeMutation, useUnstakeMutation } from "@/modules/mutation";
 import { ConnectButton } from "thirdweb/react";
 import { chainInfo, client } from "@/utils/configs";
 import { createWallet } from "thirdweb/wallets";
+import { TabButton } from ".";
+import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
+import { cn } from "@/modules/utils";
 
 // const LockPeriod = [
 //   { lockPeriod: 30, rate: 10, index: 0 },
@@ -20,23 +23,6 @@ import { createWallet } from "thirdweb/wallets";
 //   { lockPeriod: 180, rate: 40, index: 3 },
 //   { lockPeriod: 360, rate: 50, index: 4 },
 // ];
-
-const TabButton: React.FC<{
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}> = ({ active, onClick, children }) => (
-  <button
-    className={`px-4 py-2 font-semibold ${
-      active
-        ? "text-blue-500 border-b-2 border-blue-500"
-        : "text-gray-400 hover:text-white"
-    }`}
-    onClick={onClick}
-  >
-    {children}
-  </button>
-);
 
 const Stake: React.FC = () => {
   const { activeAccount } = useUserChainInfo();
@@ -76,177 +62,233 @@ const Stake: React.FC = () => {
     //   handleUnstake(positionId);
     // }
   };
-
+  const tabs = [
+    {
+      key: "stake",
+      label: "Stake Token",
+    },
+    {
+      key: "unstake",
+      label: "Unstake Token",
+    },
+  ];
   if (!activeAccount) {
     return (
       <Layout>
-        <div className="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Welcome to Mint Mingle XFI Staking
-          </h2>
-          <p className="text-gray-300 mb-6">
-            Connect your wallet to start staking and earning rewards.
-          </p>
-          <ConnectButton
-            client={client}
-            chain={chainInfo}
-            wallets={[createWallet("io.metamask")]}
-            connectButton={{
-              label: "Connect Wallet",
-              className:
-                "!font-inter !rounded-xl lg:!w-36 !border !border-dialog-border !w-[75%] max-sm:!w-full !flex !items-center !justify-center hover:!bg-primary/65 hover:!text-foreground !duration-300 !ease-in-out !transition !bg-sec-bg !text-muted-foreground !h-10",
-            }}
-          />
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="max-w-4xl mx-auto bg-new-secondary border border-dialog-border rounded-[24px] p-6 text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Welcome to Mint Mingle XFI Staking
+            </h2>
+            <p className="text-gray-300 mb-6">
+              Connect your wallet to start staking and earning rewards.
+            </p>
+            <div className="flex w-full items-center justify-center">
+              <ConnectButton
+                client={client}
+                chain={chainInfo}
+                wallets={[createWallet("io.metamask")]}
+                connectButton={{
+                  label: "Connect Wallet",
+                  className:
+                    "!font-inter !rounded-xl lg:!w-36 !border !border-dialog-border !w-[75%] max-sm:!w-full !flex !items-center !justify-center hover:!bg-primary/65 hover:!text-foreground !duration-300 !ease-in-out !transition !bg-sec-bg !text-muted-foreground !h-10",
+                }}
+              />
+            </div>
+          </div>
         </div>
       </Layout>
     );
   }
-
+  const Stats = [
+    {
+      label: "Total Staked Tokens",
+      value: platformStats?.totalStakedTokens,
+    },
+    {
+      label: "Total Active Stakers",
+      value: platformStats?.totalActiveStakers,
+    },
+    {
+      label: "Total Withdrawal Paid",
+      value: platformStats?.totalRenewalPaid,
+    },
+  ];
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg">
-        <div className="flex justify-center mb-6">
-          <TabButton
-            active={activeTab === "stake"}
-            onClick={() => setActiveTab("stake")}
-          >
-            Stake Token
-          </TabButton>
-          <TabButton
-            active={activeTab === "unstake"}
-            onClick={() => setActiveTab("unstake")}
-          >
-            Unstake Token
-          </TabButton>
-        </div>
-
-        {/* Balance and Exchange Rate */}
-        <div className="bg-gray-700 p-4 rounded-lg mb-6 flex justify-between items-center">
-          <div>
-            <p className="text-sm text-gray-400">Your Balance</p>
-            <p className="text-xl font-bold text-white">
-              {to3DP(balance?.displayValue! || 0)} {balance?.symbol}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Exchange Rate</p>
-            <p className="text-xl font-bold text-white">1 XFI = $0.7</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {activeTab === "stake" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Stake Amount
-                </label>
-                <input
-                  type="text"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount"
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Lock Period Section */}
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-white mb-3">
-                  Lock Period
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {LockPeriod &&
-                    LockPeriod.map((period: any, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => setLockPeriodIndex(period.index)}
-                        className={`p-3 rounded-lg transition-colors duration-200 flex justify-between items-center ${
-                          lockPeriodIndex === period.index
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                        }`}
-                      >
-                        <span>{period.lockPeriod} days</span>
-                        <span className="font-bold">{period.rate}%</span>
-                      </button>
-                    ))}
+      <div className="flex justify-center items-center w-full h-full">
+        <div className="max-w-[600px] w-full mx-auto mt-8 md:mt-0 bg-new-secondary border p-6 h-[90%] border-dialog-border rounded-[24px]">
+          <ScrollArea.Root>
+            {/* Platform Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-new-secondary border border-dialog-border p-4 mb-6 rounded-2xl">
+              {Stats.map((stat) => {
+                const { label, value } = stat;
+                return (
+                  <div className="flex flex-col gap-2 border bg-new-terciary border-dialog-border p-2 rounded-xl">
+                    <p className="text-sm text-muted-foreground">{label}</p>
+                    <p className="text-xl font-medium text-foreground">
+                      {value} {label === "Total Staked Tokens" && "XFI"}
+                    </p>
+                  </div>
+                );
+              })}
+              {/* Balance and Exchange Rate */}
+              <div className="border bg-new-terciary border-dialog-border md:col-span-3 col-span-1 p-2 rounded-xl flex justify-between items-center">
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted-foreground">Your Balance</p>
+                  <p className="text-xl font-medium text-foreground">
+                    {to3DP(balance?.displayValue! || 0)} {balance?.symbol}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted-foreground">Exchange Rate</p>
+                  <p className="text-xl font-medium text-foreground">
+                    1 XFI = $0.7
+                  </p>
                 </div>
               </div>
-            </>
-          )}
-
-          {activeTab === "unstake" && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-700">
-                    <th className="p-3">Amount Staked</th>
-                    <th className="p-3">Amount Earned</th>
-                    <th className="p-3">Unlock Date</th>
-                    <th className="p-3">Created Date</th>
-                    <th className="p-3">Interest</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userPosition &&
-                    userPosition.map((position: any, index: number) => (
-                      <tr key={index} className="border-b border-gray-700">
-                        <td className="p-3">{position.amountStaked}</td>
-                        <td className="p-3">{position.amountEarned}</td>
-                        <td className="p-3">{position.unlockDate}</td>
-                        <td className="p-3">{position.createdDate}</td>
-                        <td className="p-3">{position.percentInterest}%</td>
-                        <td className="p-3">
-                          {position.open ? "Open" : "Closed"}
-                        </td>
-                        <td className="p-3">
-                          <button
-                            onClick={() => handleUnstake(position.positionId)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                          >
-                            Unstake
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
             </div>
-          )}
 
-          {activeTab === "stake" && (
-            <button
-              onClick={handleClick}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300"
-            >
-              Stake Token
-            </button>
-          )}
-        </div>
-      </div>
+            <div className="border-t border-t-dialog-border my-6 mt-8">
+              <div className="flex justify-start my-6 gap-6">
+                {tabs.map((tab) => (
+                  <TabButton
+                    key={tab.key}
+                    active={activeTab === tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                  >
+                    {tab.label}
+                  </TabButton>
+                ))}
+              </div>
 
-      {/* Platform Stats */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gray-700 p-4 rounded-lg">
-          <p className="text-sm text-gray-400">Total Staked Tokens</p>
-          <p className="text-2xl font-bold text-white">
-            {platformStats?.totalStakedTokens} XFI
-          </p>
-        </div>
-        <div className="bg-gray-700 p-4 rounded-lg">
-          <p className="text-sm text-gray-400">Total Active Stakers</p>
-          <p className="text-2xl font-bold text-white">
-            {platformStats?.totalActiveStakers}
-          </p>
-        </div>
-        <div className="bg-gray-700 p-4 rounded-lg">
-          <p className="text-sm text-gray-400">Total Withdrawal Paid</p>
-          <p className="text-2xl font-bold text-white">
-            {platformStats?.totalRenewalPaid}
-          </p>
+              <div className="space-y-6">
+                {activeTab === "stake" && (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="block text-sm font-medium text-muted-foreground">
+                        Stake Amount
+                      </label>
+                      <input
+                        type="text"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="Enter amount"
+                        className="w-full bg-transparent h-[45px] placeholder:text-muted-foreground text-sm text-white px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-sec-btn border border-dialog-border"
+                      />
+                    </div>
+
+                    {/* Lock Period Section */}
+                    <div className="bg-new-secondary border border-dialog-border p-4 rounded-xl">
+                      <h3 className="text-lg font-semibold text-white mb-3">
+                        Lock Period
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {LockPeriod &&
+                          LockPeriod.map((period: any, index: number) => {
+                            return (
+                              <button
+                                key={index}
+                                onClick={() => setLockPeriodIndex(period.index)}
+                                className={`py-2 px-3 rounded-xl transition-colors duration-200 flex justify-between items-center text-sm ${
+                                  lockPeriodIndex === period.index
+                                    ? "bg-sec-btn/50 border border-sec-btn text-white"
+                                    : "bg-transparent border border-dialog-border text-muted-foreground hover:text-foreground transition-all duration-300 ease-in-out hover:bg-new-terciary"
+                                }`}
+                              >
+                                <span>
+                                  {period.lockPeriod}{" "}
+                                  {period.lockPeriod !== 1 ? "days" : "day"}
+                                </span>
+                                <span className="font-bold">
+                                  {period.rate}%
+                                </span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "unstake" && (
+                  <div className="overflow-x-scrollmax-w-[600px]">
+                    <ScrollArea.Root>
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="">
+                            <th className="p-3 text-sm font-normal">
+                              Amount Staked
+                            </th>
+                            <th className="p-3 text-sm font-normal">
+                              Amount Earned
+                            </th>
+                            <th className="p-3 text-sm font-normal">
+                              Unlock Date
+                            </th>
+                            <th className="p-3 text-sm font-normal">
+                              Created Date
+                            </th>
+                            <th className="p-3 text-sm font-normal">
+                              Interest
+                            </th>
+                            <th className="p-3 text-sm font-normal">Status</th>
+                            <th className="p-3 text-sm font-normal">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {userPosition &&
+                            userPosition.map((position: any, index: number) => (
+                              <tr
+                                key={index}
+                                className="border-b border-gray-700"
+                              >
+                                <td className="p-3">{position.amountStaked}</td>
+                                <td className="p-3">{position.amountEarned}</td>
+                                <td className="p-3">{position.unlockDate}</td>
+                                <td className="p-3">{position.createdDate}</td>
+                                <td className="p-3">
+                                  {position.percentInterest}%
+                                </td>
+                                <td className="p-3">
+                                  {position.open ? "Open" : "Closed"}
+                                </td>
+                                <td className="p-3">
+                                  <button
+                                    onClick={() =>
+                                      handleUnstake(position.positionId)
+                                    }
+                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                                  >
+                                    Unstake
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </ScrollArea.Root>
+                  </div>
+                )}
+
+                {activeTab === "stake" && (
+                  <button
+                    disabled={!amount || !lockPeriodIndex}
+                    onClick={handleClick}
+                    className={cn(
+                      "w-full bg-sec-btn hover:bg-sec-btn/80 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out",
+                      {
+                        "pointer-events-none opacity-35":
+                          !amount || !lockPeriodIndex,
+                      }
+                    )}
+                  >
+                    Stake Token
+                  </button>
+                )}
+              </div>
+            </div>
+          </ScrollArea.Root>
         </div>
       </div>
     </Layout>
