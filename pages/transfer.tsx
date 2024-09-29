@@ -19,7 +19,6 @@ import { isAddress } from "ethers/lib/utils";
 import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
 import { TabButton } from ".";
 
-
 const Transfer: React.FC = () => {
   const { activeAccount } = useUserChainInfo();
   const [activeTab, setActiveTab] = useState("token");
@@ -52,7 +51,7 @@ const Transfer: React.FC = () => {
   }, [recipient]);
 
   const handleTokenTransfer = async () => {
-    console.log('inside handle token transfer')
+    console.log("inside handle token transfer");
     const parsedJson = tryParseJSON(selectedAsset);
 
     const tokenAddress = parsedJson?.contractAddress;
@@ -60,7 +59,6 @@ const Transfer: React.FC = () => {
     console.log({ tokenAddress, amount, recipient });
 
     if (!tokenAddress || !amount || !recipient) return;
-
 
     await transferTokenMutation.mutateAsync(
       {
