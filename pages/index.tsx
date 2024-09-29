@@ -31,7 +31,7 @@ export const TabButton: React.FC<{
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  className?:string
+  className?: string;
 }> = ({ active, onClick, children, className }) => (
   <button
     className={cn(
@@ -71,6 +71,7 @@ const tabs = [
     icon: <ArrowUpDown className="w-5 h-5" />,
   },
 ];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("tokens");
   const [selectedNFT, setSelectedNFT] = useState(null);
@@ -103,9 +104,6 @@ export default function Home() {
   const isError =
     tokenError || nftError || tokenTransfersError || nftTransfersError;
 
-  const data = useGetUserTokensQuery();
-  console.log({ data });
-
   const groupTransfersByDate = (transfers: Partial<NFTActivity>[]) => {
     return transfers.reduce((acc, transfer) => {
       if (transfer.timestamp) {
@@ -122,7 +120,6 @@ export default function Home() {
 
   const groupedTokenTransfers = groupTransfersByDate(tokenTransfers || []);
   const groupedNFTTransfers = groupTransfersByDate(nftTransfers || []);
-
 
   return (
     <Layout>

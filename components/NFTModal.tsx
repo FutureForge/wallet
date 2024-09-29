@@ -57,14 +57,16 @@ export function NFTDialog({ nft }: NFTModalProps) {
             />
           </div>
           <div className="w-1/2">
-            <h3 className="text-xl font-semibold mb-2 text-muted-foreground">Attributes:</h3>
+            <h3 className="text-xl font-semibold mb-2 text-muted-foreground">
+              Attributes:
+            </h3>
             <div className="grid grid-cols-2 gap-2">
               {nft.nft.metadata.attributes?.map((attribute: any) => (
                 <div
                   key={attribute.trait_type}
                   className="bg-new-terciary border border-new-elements-border p-2 rounded-lg"
                 >
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground capitalize">
                     {attribute.trait_type}
                   </p>
                   <p className="text-foreground font-medium capitalize">

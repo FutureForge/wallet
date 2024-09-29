@@ -37,7 +37,7 @@ export function useTransferTokenMutation() {
       }
 
       console.log({ tokenAddress, amount, recipient });
-      console.log('inside transfer')
+      console.log("inside transfer");
 
       if (
         tokenAddress.toLowerCase() ===
@@ -133,7 +133,7 @@ export function useTransferNFTMutation() {
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: ["userTokens", "balance", "userNFTs",activeAccount],
+        queryKey: ["userTokens", "balance", "userNFTs", activeAccount],
       });
     },
     onError: (error, variables, context) => {},
@@ -184,7 +184,12 @@ export function useStakeMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["userTokens", "balance", activeAccount],
+        queryKey: [
+          "userTokens",
+          "balance",
+          "userStakingPosition",
+          activeAccount,
+        ],
       });
     },
     onError: () => {},

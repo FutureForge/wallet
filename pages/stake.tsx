@@ -7,7 +7,7 @@ import {
   useGetPlatformStatsQuery,
   useUserChainInfo,
 } from "@/modules/query";
-import { to3DP } from "@/utils";
+import { formatBlockchainTimestamp, to3DP } from "@/utils";
 import { useStakeMutation, useUnstakeMutation } from "@/modules/mutation";
 import { ConnectButton } from "thirdweb/react";
 import { chainInfo, client } from "@/utils/configs";
@@ -37,6 +37,8 @@ const Stake: React.FC = () => {
   const [activeTab, setActiveTab] = useState("stake");
   const [amount, setAmount] = useState("");
   const [lockPeriodIndex, setLockPeriodIndex] = useState(0);
+
+  const isTxLoading = stakeMutation.isPending || unstakeMutation.isPending;
 
   const handleStake = () => {
     if (!amount) return;
@@ -232,39 +234,64 @@ const Stake: React.FC = () => {
                             <th className="p-3 text-sm font-normal">
                               Interest
                             </th>
-                            <th className="p-3 text-sm font-normal">Status</th>
+                            {/* <th className="p-3 text-sm font-normal">Status</th> */}
                             <th className="p-3 text-sm font-normal">Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {userPosition &&
-                            userPosition.map((position: any, index: number) => (
-                              <tr
-                                key={index}
-                                className="border-b border-gray-700"
-                              >
-                                <td className="p-3">{position.amountStaked}</td>
-                                <td className="p-3">{position.amountEarned}</td>
-                                <td className="p-3">{position.unlockDate}</td>
-                                <td className="p-3">{position.createdDate}</td>
-                                <td className="p-3">
-                                  {position.percentInterest}%
-                                </td>
-                                <td className="p-3">
-                                  {position.open ? "Open" : "Closed"}
-                                </td>
-                                <td className="p-3">
-                                  <button
-                                    onClick={() =>
-                                      handleUnstake(position.positionId)
-                                    }
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                                  >
-                                    Unstake
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                            userPosition.map((position: any, index: number) => {
+                              const currentTime = new Date().getTime();
+                              const unlockTime = new Date(
+                                position.unlockDate
+                              ).getTime();
+                              const isUnlocked = currentTime >= unlockTime;
+
+                              return (
+                                <tr
+                                  key={index}
+                                  className="border-b border-gray-700"
+                                >
+                                  <td className="p-3">
+                                    {position.amountStaked}
+                                  </td>
+                                  <td className="p-3">
+                                    {position.amountEarned}
+                                  </td>
+                                  <td className="p-3">{position.unlockDate}</td>
+                                  <td className="p-3">
+                                    {position.createdDate}
+                                  </td>
+                                  <td className="p-3">
+                                    {position.percentInterest}%
+                                  </td>
+                                  {/* <td className="p-3">
+                                    {position.open ? "Open" : "Closed"}
+                                  </td> */}
+                                  <td className="p-3 relative group">
+                                    <button
+                                      disabled={!isUnlocked || isTxLoading}
+                                      onClick={() =>
+                                        handleUnstake(position.positionId)
+                                      }
+                                      className={`px-3 py-1 rounded ${
+                                        isUnlocked
+                                          ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                          : "bg-gray-500 text-gray-300 cursor-not-allowed"
+                                      }`}
+                                    >
+                                      Unstake
+                                    </button>
+                                    {!isUnlocked && (
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                        Cannot unstake until{" "}
+                                        {position.unlockDate}
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
                         </tbody>
                       </table>
                     </ScrollArea.Root>
@@ -273,13 +300,13 @@ const Stake: React.FC = () => {
 
                 {activeTab === "stake" && (
                   <button
-                    disabled={!amount || !lockPeriodIndex}
+                    disabled={!amount || !lockPeriodIndex || isTxLoading}
                     onClick={handleClick}
                     className={cn(
                       "w-full bg-sec-btn hover:bg-sec-btn/80 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out",
                       {
                         "pointer-events-none opacity-35":
-                          !amount || !lockPeriodIndex,
+                          !amount || !lockPeriodIndex || isTxLoading,
                       }
                     )}
                   >

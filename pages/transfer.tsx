@@ -19,9 +19,11 @@ import { isAddress } from "ethers/lib/utils";
 import { ScrollArea } from "@/modules/app/scroll-area/scroll-area";
 import { TabButton } from ".";
 
+type ActiveTabType = "token" | "nft";
+
 const Transfer: React.FC = () => {
   const { activeAccount } = useUserChainInfo();
-  const [activeTab, setActiveTab] = useState("token");
+  const [activeTab, setActiveTab] = useState<ActiveTabType>("token");
   const [selectedAsset, setSelectedAsset] = useState("");
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
@@ -105,6 +107,7 @@ const Transfer: React.FC = () => {
       handleNFTTransfer();
     }
   };
+
   const tabs = [
     {
       key: "token",
@@ -115,6 +118,7 @@ const Transfer: React.FC = () => {
       label: " Transfer NFT",
     },
   ];
+
   return (
     <Layout>
       <div className="flex justify-center items-center h-full w-full">
@@ -124,7 +128,7 @@ const Transfer: React.FC = () => {
               <TabButton
                 key={tab.key}
                 active={activeTab === tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => setActiveTab(tab.key as ActiveTabType)}
               >
                 {tab.label}
               </TabButton>
@@ -147,6 +151,7 @@ const Transfer: React.FC = () => {
                 placeholder="Enter public address (0x) or ENS name"
                 className="w-full bg-transparent h-[45px] placeholder:text-muted-foreground text-sm text-white px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-sec-btn border border-dialog-border"
               />
+              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -222,7 +227,7 @@ const Transfer: React.FC = () => {
             )}
 
             <button
-              disabled={!amount || !selectedAsset || !recipient}
+              disabled={!amount || !selectedAsset || !recipient || isTxPending}
               onClick={handleTransfer}
               className={cn(
                 "w-full bg-sec-btn hover:bg-sec-btn/80 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out",

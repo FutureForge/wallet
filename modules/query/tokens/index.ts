@@ -208,7 +208,7 @@ export function useGetStakingPosition() {
   const { activeAccount } = useUserChainInfo();
 
   return useQuery({
-    queryKey: ["stakingContract", activeAccount],
+    queryKey: ["userStakingPosition", activeAccount],
     queryFn: async () => {
       const StakingContract = getContractEthers({
         contractAddress: STAKING_CONTRACT_ADDRESS,
@@ -223,7 +223,7 @@ export function useGetStakingPosition() {
         userPosition.map(async (position: BigInt) => {
           const positionDetails = await StakingContract.getPositionById(
             position
-          );
+          )
 
           const updatedPositionDetails = {
             positionId: positionDetails[0].toString(),
@@ -237,14 +237,18 @@ export function useGetStakingPosition() {
             percentInterest: positionDetails[4].toString(),
             amountStaked: decimalOffChain(positionDetails[5].toString()),
             amountEarned: decimalOffChain(positionDetails[6].toString()),
-            open: positionDetails[7].toString(),
+            open: positionDetails[7],
           };
 
           return updatedPositionDetails;
         })
       );
 
-      return userPositionDetails;
+      const filteredPositionDetails = userPositionDetails.filter(
+        (detail: any) => detail.open === true
+      );
+
+      return filteredPositionDetails;
     },
     enabled: !!activeAccount,
     refetchInterval: 5000,
